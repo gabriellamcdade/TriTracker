@@ -174,3 +174,26 @@ for position, (week, sports) in enumerate(sorted_weeks, start=1):
         )
 
     previous_load = total_load
+
+print("\nACTIVITY INTENSITY")
+
+with open("data/activities.csv", "r", newline="") as file:
+    activities = csv.DictReader(file)
+
+    for activity in activities:
+        date = activity["date"]
+        sport = activity["sport"]
+        heart_rate = int(activity["avg_hr"])
+
+        if heart_rate < 120:
+            zone = "Zone 1"
+        elif heart_rate <= 139:
+            zone = "Zone 2"
+        elif heart_rate <= 154:
+            zone = "Zone 3"
+        elif heart_rate <= 169:
+            zone = "Zone 4"
+        else:
+            zone = "Zone 5"
+
+        print(f"{date} | {sport:<4} | {heart_rate} bpm | {zone}")
