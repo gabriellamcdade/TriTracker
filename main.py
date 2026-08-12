@@ -197,3 +197,42 @@ with open("data/activities.csv", "r", newline="") as file:
             zone = "Zone 5"
 
         print(f"{date} | {sport:<4} | {heart_rate} bpm | {zone}")
+
+
+zone_minutes = {
+    "Zone 1": 0,
+    "Zone 2": 0,
+    "Zone 3": 0,
+    "Zone 4": 0,
+    "Zone 5": 0,
+}
+
+with open("data/activities.csv", "r", newline="") as file:
+    activities = csv.DictReader(file)
+
+    for activity in activities:
+        heart_rate = int(activity["avg_hr"])
+        duration = int(activity["duration_min"])
+
+        if heart_rate < 120:
+            zone = "Zone 1"
+        elif heart_rate <= 139:
+            zone = "Zone 2"
+        elif heart_rate <= 154:
+            zone = "Zone 3"
+        elif heart_rate <= 169:
+            zone = "Zone 4"
+        else:
+            zone = "Zone 5"
+
+        zone_minutes[zone] += duration
+
+total_training_minutes = sum(zone_minutes.values())
+
+print("\nTRAINING INTENSITY DISTRIBUTION\n")
+
+for zone, minutes in zone_minutes.items():
+    percentage = (minutes / total_training_minutes) * 100
+    print(f"{zone}: {minutes:>4} min   {percentage:>5.1f}%")
+
+print(f"\nTotal: {total_training_minutes:>4} min")
