@@ -236,3 +236,128 @@ for zone, minutes in zone_minutes.items():
     print(f"{zone}: {minutes:>4} min   {percentage:>5.1f}%")
 
 print(f"\nTotal: {total_training_minutes:>4} min")
+
+print("\nTRITRACKER RECOVERY")
+
+# Get the most recent two weeks
+recent_week, recent_sports = sorted_weeks[-1]
+previous_week, previous_sports = sorted_weeks[-2]
+
+recent_load = sum(
+    values["training_load"]
+    for values in recent_sports.values()
+)
+
+previous_load = sum(
+    values["training_load"]
+    for values in previous_sports.values()
+)
+
+# Percentage change from previous week
+load_change = (
+    (recent_load - previous_load) / previous_load
+) * 100
+
+# Work out the percentage of recent-week time spent in Zones 4 and 5
+high_intensity_minutes = 0
+recent_total_minutes = 0
+
+with open("data/activities.csv", "r", newline="") as file:
+    activities = csv.DictReader(file)
+
+    for activity in activities:
+        date = datetime.strptime(activity["date"], "%Y-%m-%d")
+        iso_date = date.isocalendar()
+        activity_week = f"{iso_date.year} - Week {iso_date.week}"
+
+        if activity_week == recent_week:
+            duration = int(activity["duration_min"])
+            heart_rate = int(activity["avg_hr"])
+
+            recent_total_minutes += duration
+
+            # Zone 4 or Zone 5
+            if heart_rate >= 155:
+                high_intensity_minutes += duration
+
+high_intensity_percent = (
+    high_intensity_minutes / recent_total_minutes
+) * 100
+
+# Base recovery score from the latest week's load
+if recent_load < 200:
+    base_score = 90
+elif recent_load < 350:
+    base_score = 75
+elif recent_load < 500:
+    base_score = 55
+else:
+    base_score = 35
+
+# Penalty for a training-load increase
+if load_change < 5:
+    load_change_penalty = 0
+elif load_change <= 10:
+    load_change_penalty = 5
+elif load_change <= 15:
+    load_change_penalty = 10
+elif load_change <= 20:
+    load_change_penalty = 15
+else:
+    load_change_penalty = 20
+
+# Penalty for time spent at high intensity (Zones 4–5)
+if high_intensity_percent < 10:
+    intensity_penalty = 0
+elif high_intensity_percent <= 20:
+    intensity_penalty = 5
+elif high_intensity_percent <= 30:
+    intensity_penalty = 10
+else:
+    intensity_penalty = 15
+
+# Final recovery score
+recovery_score = (
+    base_score
+    - load_change_penalty
+    - intensity_penalty
+)
+
+recovery_score = max(0, min(100, recovery_score))
+
+# Status and recommended session intensity
+if recovery_score >= 70:
+    status = "GOOD"
+    recommendation = "MODERATE"
+elif recovery_score >= 50:
+    status = "CAUTION"
+    recommendation = "EASY"
+else:
+    status = "LOW"
+    recommendation = "REST"
+
+# Display the recovery section
+print(f"Recovery Score: {recovery_score:.0f} / 100")
+print(f"Status: {status}")
+
+print(f"\nRecent Load:       {recent_load:.0f}")
+print(f"Previous Week:     {previous_load:.0f}")
+print(f"Load Change:       {load_change:+.1f}%")
+print(f"High Intensity:    {high_intensity_percent:.0f}%")
+
+print("\n--------------------------------")
+
+if load_change > 15:
+    print("\nYour recent training load has increased significantly.")
+elif load_change > 0:
+    print("\nYour recent training load has increased.")
+else:
+    print("\nYour recent training load has not increased.")
+
+if high_intensity_percent < 20:
+    print("High-intensity training remains moderate.")
+else:
+    print("High-intensity training is elevated.")
+
+print("\nRecommended intensity:")
+print(recommendation)
