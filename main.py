@@ -62,7 +62,8 @@ print(f"Average heart rate: {swim_avg_hr:.0f} bpm")
 
 weekly_data = defaultdict(lambda: defaultdict(lambda: {
     "distance": 0,
-    "duration": 0
+    "duration": 0,
+    "training_load": 0
 }))
 
 with open("data/activities.csv", "r", newline="") as file:
@@ -77,9 +78,13 @@ with open("data/activities.csv", "r", newline="") as file:
         sport = activity["sport"]
         distance = float(activity["distance_km"])
         duration = int(activity["duration_min"])
+        heart_rate = int(activity["avg_hr"])
+        intensity = heart_rate / 180
+        training_load = duration * intensity
 
         weekly_data[week][sport]["distance"] += distance
         weekly_data[week][sport]["duration"] += duration
+        weekly_data[week][sport]["training_load"] += training_load
 
 print("\nWEEKLY TRAINING SUMMARY")
 
@@ -110,3 +115,20 @@ for week, sports in weekly_data.items():
     total_hours = total_training_time // 60
     total_minutes = total_training_time % 60
     print(f"\nTotal training time: {total_hours}h {total_minutes}m")
+
+print("\nWEEKLY TRAINING LOAD")
+
+for week, sports in weekly_data.items():
+    print(f"\n{week}")
+
+    total_load = 0
+
+    for sport in ["Run", "Bike", "Swim"]:
+        if sport in sports:
+            load = sports[sport]["training_load"]
+            total_load += load
+
+            print(f"\n{sport_titles[sport]}")
+            print(f"Training load: {load:.1f}")
+
+    print(f"\nTotal training load: {total_load:.1f}")
