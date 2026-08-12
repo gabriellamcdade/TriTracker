@@ -132,3 +132,45 @@ for week, sports in weekly_data.items():
             print(f"Training load: {load:.1f}")
 
     print(f"\nTotal training load: {total_load:.1f}")
+
+print("\nTRAINING LOAD TREND")
+
+# Sort weeks in date order, then number them Week 1, Week 2, etc.
+sorted_weeks = sorted(
+    weekly_data.items(),
+    key=lambda item: (
+        int(item[0].split(" - Week ")[0]),
+        int(item[0].split(" - Week ")[1])
+    )
+)
+
+previous_load = None
+
+for position, (week, sports) in enumerate(sorted_weeks, start=1):
+    total_load = sum(values["training_load"] for values in sports.values())
+
+    if previous_load is None:
+        print(f"Week {position:<4} {total_load:.0f}")
+
+    else:
+        percentage_change = ((total_load - previous_load) / previous_load) * 100
+
+        if percentage_change > 15:
+            interpretation = "Significant increase"
+        elif percentage_change > 0:
+            interpretation = "Increase"
+        elif percentage_change < -15:
+            interpretation = "Significant decrease"
+        elif percentage_change < 0:
+            interpretation = "Decrease"
+        else:
+            interpretation = "No change"
+
+        arrow = "↑" if percentage_change > 0 else "↓" if percentage_change < 0 else "–"
+
+        print(
+            f"Week {position:<4} {total_load:.0f}   "
+            f"{arrow} {abs(percentage_change):.1f}% — {interpretation}"
+        )
+
+    previous_load = total_load
