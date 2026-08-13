@@ -28,8 +28,11 @@ def build_weekly_data(activities):
         duration = activity["duration_min"]
         heart_rate = activity["avg_hr"]
 
-        intensity = heart_rate / 180
-        training_load = duration * intensity
+        if heart_rate is None:
+            training_load = 0
+        else:
+            intensity = heart_rate / 180
+            training_load = duration * intensity
 
         weekly_data[week][sport]["distance"] += distance
         weekly_data[week][sport]["duration"] += duration
@@ -138,3 +141,42 @@ def print_training_load_trend(sorted_weeks):
             )
 
         previous_load = total_load
+
+def get_weekly_training_load(activities):
+    weekly_data = build_weekly_data(activities)
+    weekly_loads = []
+
+    previous_total_load = None
+
+    for week, sports in get_sorted_weeks(weekly_data):
+        sport_loads = {}
+        total_training_load = 0
+
+        for sport in SPORTS:
+            if sport in sports:
+                load = sports[sport]["training_load"]
+                sport_loads[sport] = round(load, 1)
+                total_training_load += load
+
+        if previous_total_load is None or previous_total_load == 0:
+            percentage_change = None
+        else:
+            percentage_change = (
+                (total_training_load - previous_total_load)
+                / previous_total_load
+            ) * 100
+
+        weekly_loads.append({
+            "week": week,
+            "sports": sport_loads,
+            "total_training_load": round(total_training_load, 1),
+            "percentage_change": (
+                round(percentage_change, 1)
+                if percentage_change is not None
+                else None
+            ),
+        })
+
+        previous_total_load = total_training_load
+
+    return weekly_loads
