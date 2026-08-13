@@ -179,3 +179,62 @@ def get_authenticated_athlete():
         raise RuntimeError(
             "Strava returned a response that was not valid JSON."
         )
+
+
+def get_activities(page=1, per_page=10):
+    if page < 1:
+        raise ValueError("page must be 1 or greater.")
+
+    if not 1 <= per_page <= 200:
+        raise ValueError("per_page must be between 1 and 200.")
+
+    tokens = load_tokens()
+
+    headers = {
+        "Authorization": f"Bearer {tokens['access_token']}"
+    }
+
+    parameters = {
+        "page": page,
+        "per_page": per_page,
+    }
+
+    try:
+        response = requests.get(
+            "https://www.strava.com/api/v3/athlete/activities",
+            headers=headers,
+            params=parameters,
+            timeout=20,
+        )
+
+    except requests.Timeout:
+        raise RuntimeError(
+            "The request to Strava timed out. Please try again."
+        )
+
+    except requests.RequestException as error:
+        raise RuntimeError(
+            f"Could not connect to Strava: {error}"
+        )
+
+    if response.status_code == 401:
+        raise RuntimeError(
+            "Your Strava access token is invalid or expired. "
+            "Refresh it and try again."
+        )
+
+    try:
+        response.raise_for_status()
+
+    except requests.HTTPError:
+        raise RuntimeError(
+            f"Strava returned an error: {response.status_code}"
+        )
+
+    try:
+        return response.json()
+
+    except ValueError:
+        raise RuntimeError(
+            "Strava returned a response that was not valid JSON."
+        )

@@ -50,3 +50,50 @@ try:
 
 except RuntimeError as error:
     print(f"\nStrava error: {error}")
+
+from src.strava_api import get_activities
+
+try:
+    activities = get_activities(page=1, per_page=10)
+
+    print("\nLATEST STRAVA ACTIVITIES")
+
+    for activity in activities:
+        print(
+            f"{activity['start_date_local'][:10]} | "
+            f"{activity['name']} | "
+            f"{activity['type']}"
+        )
+
+except RuntimeError as error:
+    print(f"\nStrava error: {error}")
+from src.strava_api import get_activities
+from src.strava_data import transform_activity
+
+try:
+    strava_activities = get_activities(page=1, per_page=10)
+
+    print("\nLATEST STRAVA ACTIVITIES")
+
+    for strava_activity in strava_activities:
+        activity = transform_activity(strava_activity)
+
+        if activity is None:
+            continue
+
+        heart_rate = (
+            f"{activity['avg_hr']} bpm"
+            if activity["avg_hr"] is not None
+            else "No heart-rate data"
+        )
+
+        print(
+            f"{activity['date']} | "
+            f"{activity['sport']:<4} | "
+            f"{activity['distance_km']:.2f} km | "
+            f"{activity['duration_min']} min | "
+            f"{heart_rate}"
+        )
+
+except RuntimeError as error:
+    print(f"\nStrava error: {error}")
