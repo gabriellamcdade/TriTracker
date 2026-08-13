@@ -76,4 +76,6 @@ def get_all_activities():
             ORDER BY date DESC
         """)
 
-        return [dict(row) for row in cursor.fetchall()]
+        activities = cursor.fetchall()
+
+    return [dict(activity) for activity in activities]
