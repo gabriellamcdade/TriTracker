@@ -3,3 +3,4 @@ __pycache__/
 .idea/
 .env
 *.pyc
+data/strava_tokens.json
