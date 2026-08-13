@@ -18,6 +18,7 @@ def transform_activity(strava_activity):
     average_heartrate = strava_activity.get("average_heartrate")
 
     return {
+        "strava_id": strava_activity["id"],
         "date": start_date_local[:10],
         "sport": sport_mapping[strava_sport],
         "distance_km": round(distance_metres / 1000, 2),

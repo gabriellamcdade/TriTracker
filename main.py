@@ -97,3 +97,37 @@ try:
 
 except RuntimeError as error:
     print(f"\nStrava error: {error}")
+
+from src.strava_api import get_activities
+from src.strava_data import transform_activity
+from src.database import (
+    initialise_database,
+    insert_activity,
+    get_all_activities
+)
+
+
+initialise_database()
+
+strava_activities = get_activities(page=1, per_page=10)
+
+print(f"Downloaded {len(strava_activities)} activities from Strava.")
+
+for strava_activity in strava_activities:
+    activity = transform_activity(strava_activity)
+
+    if activity is None:
+        print(f"Skipped: {strava_activity['name']}")
+        continue
+
+    if insert_activity(activity):
+        print(f"Added: {activity['name'] if 'name' in activity else activity['sport']}")
+    else:
+        print(f"Already stored: {activity['sport']} on {activity['date']}")
+
+saved_activities = get_all_activities()
+
+print(f"\nDatabase contains {len(saved_activities)} activities:")
+
+for activity in saved_activities:
+    print(activity)
