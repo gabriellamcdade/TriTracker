@@ -5,11 +5,21 @@ from src.training_load import get_weekly_training_load, build_weekly_data, get_s
 from src.recovery import calculate_recovery
 from src.data_loader import load_profile
 from src.recommendation import get_recommendation
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="TriTracker API",
     description="API for TriTracker training data and analysis",
     version="1.0.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=False,
+    allow_methods=["GET"],
+    allow_headers=["Content-Type"],
 )
 
 
