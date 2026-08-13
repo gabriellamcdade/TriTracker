@@ -18,9 +18,12 @@ def calculate_recovery(activities, sorted_weeks):
         for values in previous_sports.values()
     )
 
-    load_change = (
-        (recent_load - previous_load) / previous_load
-    ) * 100
+    if previous_load == 0:
+        load_change = 0
+    else:
+        load_change = (
+                              (recent_load - previous_load) / previous_load
+                      ) * 100
 
     high_intensity_minutes = 0
     recent_total_minutes = 0
@@ -36,7 +39,7 @@ def calculate_recovery(activities, sorted_weeks):
 
             recent_total_minutes += duration
 
-            if heart_rate >= 155:
+            if heart_rate is not None and heart_rate >= 155:
                 high_intensity_minutes += duration
 
     high_intensity_percent = (

@@ -1,7 +1,10 @@
 from fastapi import FastAPI, Query
 from src.analytics import calculate_training_summary
 from src.database import get_all_activities
-from src.training_load import get_weekly_training_load
+from src.training_load import get_weekly_training_load, build_weekly_data, get_sorted_weeks
+from src.recovery import calculate_recovery
+from src.data_loader import load_profile
+from src.recommendation import get_recommendation
 
 app = FastAPI(
     title="TriTracker API",
@@ -32,3 +35,29 @@ def get_summary():
 def get_training_load():
     activities = get_all_activities()
     return get_weekly_training_load(activities)
+
+@app.get("/recovery")
+def get_recovery():
+    activities = get_all_activities()
+
+    weekly_data = build_weekly_data(activities)
+    sorted_weeks = get_sorted_weeks(weekly_data)
+
+    return calculate_recovery(activities, sorted_weeks)
+@app.get("/recommendation")
+def get_training_recommendation():
+    activities = get_all_activities()
+
+    weekly_data = build_weekly_data(activities)
+    sorted_weeks = get_sorted_weeks(weekly_data)
+
+    recovery_data = calculate_recovery(activities, sorted_weeks)
+    profile = load_profile("data/user_profile.csv")
+
+    recent_week, recent_sports = sorted_weeks[-1]
+
+    return get_recommendation(
+        profile,
+        recent_sports,
+        recovery_data,
+    )

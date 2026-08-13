@@ -1,4 +1,4 @@
-def print_recommendation(profile, recent_sports, recovery_data):
+def get_recommendation(profile, recent_sports, recovery_data):
     training_balance = {
         "Sprint": {
             "Run": 0.35,
@@ -105,25 +105,17 @@ def print_recommendation(profile, recent_sports, recovery_data):
 
     recommended_sport = min(balance_scores, key=balance_scores.get)
 
-    print("\n========================================")
-    print("          TRITRACKER RECOMMENDATION")
-    print("========================================")
-
-    # Low recovery means rest instead of a workout
     if recovery_data["score"] < 50:
-        print("\n🛌 REST DAY")
-        print("\nRest or gentle walking")
-        print("Intensity: Zone 1 or lower")
+        return {
+            "workout_type": "REST",
+            "sport": None,
+            "duration_min": 0,
+            "intensity": "Zone 1 or lower",
+            "workout_plan": ["Rest or gentle walking"],
+            "reason": "Your recovery score is low.",
+            "recovery_score": recovery_data["score"],
+        }
 
-        print("\nWHY?")
-        print("\nYour recovery score is low.")
-        print("Prioritise sleep, food, hydration, and recovery.")
-
-        print("\nRecommended intensity:")
-        print("REST")
-        return
-
-    # Good recovery permits a quality workout
     if recovery_data["score"] >= 70:
         workout_type = "QUALITY"
         duration, workout_plan = (
@@ -144,25 +136,18 @@ def print_recommendation(profile, recent_sports, recovery_data):
 
     actual_minutes = recent_sport_minutes[recommended_sport]
 
-    print(
-        f"\n{sport_icons[recommended_sport]} "
-        f"{workout_type} {sport_names[recommended_sport]}"
-    )
-
-    print(f"\nDuration: {duration} minutes")
-    print(f"Intensity: {intensity}")
-    print(f"\n{workout_plan}")
-
-    print("\nWHY?")
-    print(
-        f"\nYour recent {recommended_sport.lower()} volume is "
-        f"{actual_minutes:.0f} minutes,"
-    )
-    print(
-        f"while your target is {target_minutes:.0f} minutes "
-        f"for an {race_distance} triathlon."
-    )
-    print(f"\nYour recovery score is {recovery_data['score']:.0f}/100.")
-
-    print("\nRecommended intensity:")
-    print(intensity)
+    return {
+        "workout_type": workout_type,
+        "sport": recommended_sport,
+        "duration_min": duration,
+        "intensity": intensity,
+        "workout_plan": workout_plan.split("\n"),
+        "recent_sport_minutes": actual_minutes,
+        "target_sport_minutes": round(target_minutes, 1),
+        "race_distance": race_distance,
+        "recovery_score": recovery_data["score"],
+        "reason": (
+            f"{recommended_sport} is furthest below its weekly "
+            f"target for your {race_distance} triathlon."
+        ),
+    }

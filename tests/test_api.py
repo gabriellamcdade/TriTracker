@@ -121,3 +121,100 @@ def test_get_training_load_uses_test_activities(monkeypatch):
             "percentage_change": 100.0,
         },
     ]
+
+def test_get_recovery_uses_test_activities(monkeypatch):
+    test_activities = [
+        # Week 31: load = 30 × (150 / 180) = 25
+        {
+            "strava_id": 1,
+            "date": "2026-08-01",
+            "sport": "Run",
+            "distance_km": 5.0,
+            "duration_min": 30,
+            "avg_hr": 150,
+        },
+
+        # Week 32: load = 60 × (150 / 180) = 50
+        {
+            "strava_id": 2,
+            "date": "2026-08-03",
+            "sport": "Bike",
+            "distance_km": 20.0,
+            "duration_min": 60,
+            "avg_hr": 150,
+        },
+    ]
+
+    # Replaces the database call only while this test runs.
+    monkeypatch.setattr(api, "get_all_activities", lambda: test_activities)
+
+    response = client.get("/recovery")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["score"] == 70
+    assert data["status"] == "GOOD"
+    assert data["recommendation"] == "MODERATE"
+    assert data["recent_week"] == "2026 - Week 32"
+    assert data["recent_load"] == 50.0
+    assert data["previous_load"] == 25.0
+    assert data["load_change"] == 100.0
+    assert data["high_intensity_percent"] == 0.0
+
+def test_get_recommendation_uses_test_data(monkeypatch):
+    test_activities = [
+        {
+            "strava_id": 1,
+            "date": "2026-08-01",
+            "sport": "Run",
+            "distance_km": 5.0,
+            "duration_min": 30,
+            "avg_hr": 150,
+        },
+        {
+            "strava_id": 2,
+            "date": "2026-08-03",
+            "sport": "Run",
+            "distance_km": 25.0,
+            "duration_min": 200,
+            "avg_hr": 150,
+        },
+        {
+            "strava_id": 3,
+            "date": "2026-08-04",
+            "sport": "Bike",
+            "distance_km": 20.0,
+            "duration_min": 50,
+            "avg_hr": 150,
+        },
+        {
+            "strava_id": 4,
+            "date": "2026-08-05",
+            "sport": "Swim",
+            "distance_km": 3.0,
+            "duration_min": 100,
+            "avg_hr": 150,
+        },
+    ]
+
+    test_profile = {
+        "race_distance": "Olympic",
+        "weekly_hours": 7.0,
+    }
+
+    monkeypatch.setattr(api, "get_all_activities", lambda: test_activities)
+    monkeypatch.setattr(api, "load_profile", lambda filename: test_profile)
+
+    response = client.get("/recommendation")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["workout_type"] == "EASY"
+    assert data["sport"] == "Bike"
+    assert data["duration_min"] == 60
+    assert data["intensity"] == "Zone 2"
+    assert data["race_distance"] == "Olympic"
