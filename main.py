@@ -39,3 +39,14 @@ print_recommendation(
     recent_sports,
     recovery_data
 )
+from src.strava_api import get_authenticated_athlete
+
+try:
+    athlete = get_authenticated_athlete()
+
+    print("\nSTRAVA ATHLETE")
+    print(f"Name: {athlete['firstname']} {athlete['lastname']}")
+    print(f"ID: {athlete['id']}")
+
+except RuntimeError as error:
+    print(f"\nStrava error: {error}")

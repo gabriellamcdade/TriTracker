@@ -109,3 +109,73 @@ def connect_to_strava():
         )
 
     return exchange_code_for_tokens(callback_result["code"])
+def load_tokens():
+    try:
+        with open(TOKEN_FILE, "r") as file:
+            tokens = json.load(file)
+
+    except FileNotFoundError:
+        raise RuntimeError(
+            "No saved Strava tokens were found. "
+            "Run connect_to_strava() first."
+        )
+
+    except json.JSONDecodeError:
+        raise RuntimeError(
+            "The saved Strava token file is not valid JSON."
+        )
+
+    if "access_token" not in tokens:
+        raise RuntimeError(
+            "The saved Strava token file does not contain an access token."
+        )
+
+    return tokens
+
+
+def get_authenticated_athlete():
+    tokens = load_tokens()
+    access_token = tokens["access_token"]
+
+    headers = {
+        "Authorization": f"Bearer {access_token}"
+    }
+
+    try:
+        response = requests.get(
+            "https://www.strava.com/api/v3/athlete",
+            headers=headers,
+            timeout=20,
+        )
+
+    except requests.Timeout:
+        raise RuntimeError(
+            "The request to Strava timed out. Please try again."
+        )
+
+    except requests.RequestException as error:
+        raise RuntimeError(
+            f"Could not connect to Strava: {error}"
+        )
+
+    if response.status_code == 401:
+        raise RuntimeError(
+            "Your Strava access token is invalid or has expired. "
+            "Refresh the token, then try again."
+        )
+
+    try:
+        response.raise_for_status()
+
+    except requests.HTTPError:
+        raise RuntimeError(
+            f"Strava returned an error: {response.status_code}"
+        )
+
+    try:
+        return response.json()
+
+    except ValueError:
+        raise RuntimeError(
+            "Strava returned a response that was not valid JSON."
+        )
