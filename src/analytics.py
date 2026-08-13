@@ -100,3 +100,32 @@ def print_intensity_distribution(activities):
         print(f"{zone}: {minutes:>4} min   {percentage:>5.1f}%")
 
     print(f"\nTotal: {total_training_minutes:>4} min")
+
+def calculate_training_summary(activities):
+    summary = {
+        "Run": {
+            "distance_km": 0,
+            "duration_min": 0,
+        },
+        "Bike": {
+            "distance_km": 0,
+            "duration_min": 0,
+        },
+        "Swim": {
+            "distance_km": 0,
+            "duration_min": 0,
+        },
+        "total_training_minutes": 0,
+    }
+
+    for activity in activities:
+        sport = activity["sport"]
+
+        if sport not in ["Run", "Bike", "Swim"]:
+            continue
+
+        summary[sport]["distance_km"] += activity["distance_km"]
+        summary[sport]["duration_min"] += activity["duration_min"]
+        summary["total_training_minutes"] += activity["duration_min"]
+
+    return summary

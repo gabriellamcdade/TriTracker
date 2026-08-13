@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Query
+
 from src.database import get_all_activities
+from src.analytics import calculate_training_summary
 
 app = FastAPI(
     title="TriTracker API",
@@ -20,3 +22,8 @@ def get_activities(
 ):
     activities = get_all_activities()
     return activities[:limit]
+
+@app.get("/summary")
+def get_summary():
+    activities = get_all_activities()
+    return calculate_training_summary(activities)
