@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import ActivitiesPage from "./components/ActivitiesPage";
 
 import Sidebar from "./components/Sidebar";
 import MetricCard from "./components/MetricCard";
@@ -8,6 +7,19 @@ import TrainingLoadChart from "./components/TrainingLoadChart";
 import RecoveryGauge from "./components/RecoveryGauge";
 import RecommendationCard from "./components/RecommendationCard";
 import ActivityList from "./components/ActivityList";
+import ActivitiesPage from "./components/ActivitiesPage";
+
+import {
+  getActivities,
+  getSummary,
+  getTrainingLoad,
+} from "./services/api";
+
+import type {
+  Activity,
+  TrainingSummary,
+  WeeklyTrainingLoad,
+} from "./types";
 
 type HealthResponse = {
   status: string;
@@ -18,6 +30,12 @@ function App() {
   const [backendConnected, setBackendConnected] = useState(false);
   const [activePage, setActivePage] = useState("Dashboard");
 
+  const [summary, setSummary] = useState<TrainingSummary | null>(null);
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [trainingLoad, setTrainingLoad] =
+    useState<WeeklyTrainingLoad[]>([]);
+
+  // Check whether the backend is running
   useEffect(() => {
     async function checkBackendHealth() {
       try {
@@ -38,6 +56,45 @@ function App() {
     checkBackendHealth();
   }, []);
 
+  // Load real dashboard data from the backend
+  useEffect(() => {
+    async function loadDashboardData() {
+      try {
+        const [summaryData, activityData, trainingLoadData] =
+          await Promise.all([
+            getSummary(),
+            getActivities(100),
+            getTrainingLoad(),
+          ]);
+
+        setSummary(summaryData);
+        setActivities(activityData);
+        setTrainingLoad(trainingLoadData);
+      } catch (error) {
+        console.error("Could not load dashboard data:", error);
+      }
+    }
+
+    loadDashboardData();
+  }, []);
+
+  // Calculate dashboard values
+  const totalDistance = summary
+    ? summary.Run.distance_km +
+      summary.Bike.distance_km +
+      summary.Swim.distance_km
+    : 0;
+
+  const totalMinutes = summary?.total_training_minutes ?? 0;
+
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const latestTrainingLoad =
+    trainingLoad.length > 0
+      ? trainingLoad[trainingLoad.length - 1].total_training_load
+      : 0;
+
   return (
     <div className="dashboard">
       <Sidebar
@@ -46,13 +103,13 @@ function App() {
       />
 
       <main className="dashboard-main">
-
         {activePage === "Dashboard" && (
           <>
             <header className="dashboard-header">
               <div>
                 <p className="eyebrow">TRITRACKER</p>
                 <h1>Training Dashboard</h1>
+
                 <p className="subtitle">
                   Connected training. Smarter performance.
                 </p>
@@ -61,7 +118,9 @@ function App() {
               <div className="backend-status">
                 <span
                   className={`status-dot ${
-                    backendConnected ? "connected" : "disconnected"
+                    backendConnected
+                      ? "connected"
+                      : "disconnected"
                   }`}
                 />
 
@@ -74,26 +133,28 @@ function App() {
             <section className="metrics-grid">
               <MetricCard
                 title="Weekly Distance"
-                value="0 km"
+                value={`${totalDistance.toFixed(1)} km`}
                 subtitle="This week"
               />
 
               <MetricCard
                 title="Training Time"
-                value="0h 00m"
+                value={`${hours}h ${minutes
+                  .toString()
+                  .padStart(2, "0")}m`}
                 subtitle="This week"
               />
 
               <MetricCard
                 title="Training Load"
-                value="0"
-                subtitle="7-day load"
+                value={latestTrainingLoad.toString()}
+                subtitle="Latest week"
               />
 
               <MetricCard
                 title="Activities"
-                value="0"
-                subtitle="This week"
+                value={activities.length.toString()}
+                subtitle="Recent activities"
               />
             </section>
 
@@ -155,7 +216,6 @@ function App() {
             </p>
           </div>
         )}
-
       </main>
     </div>
   );
