@@ -16,11 +16,21 @@ def initialise_database():
                 strava_id INTEGER UNIQUE NOT NULL,
                 date TEXT NOT NULL,
                 sport TEXT NOT NULL,
+                activity_type TEXT,
                 distance_km REAL NOT NULL,
                 duration_min INTEGER NOT NULL,
                 avg_hr INTEGER
             )
         """)
+
+        cursor = connection.execute("PRAGMA table_info(activities)")
+        columns = [row[1] for row in cursor.fetchall()]
+
+        if "activity_type" not in columns:
+            connection.execute("""
+                ALTER TABLE activities
+                ADD COLUMN activity_type TEXT
+            """)
 
 
 def activity_exists(strava_id):
@@ -43,15 +53,17 @@ def insert_activity(activity):
                 strava_id,
                 date,
                 sport,
+                activity_type,
                 distance_km,
                 duration_min,
                 avg_hr
             )
-            VALUES (?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             activity["strava_id"],
             activity["date"],
             activity["sport"],
+            activity.get("activity_type"),
             activity["distance_km"],
             activity["duration_min"],
             activity["avg_hr"],
@@ -69,6 +81,7 @@ def get_all_activities():
                 strava_id,
                 date,
                 sport,
+                activity_type,
                 distance_km,
                 duration_min,
                 avg_hr
