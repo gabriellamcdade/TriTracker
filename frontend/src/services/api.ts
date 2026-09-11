@@ -49,3 +49,20 @@ export function getRecommendation(): Promise<Recommendation> {
 export function getGoal(): Promise<Goal | null> {
   return getJson<Goal | null>("/goals");
 }
+export async function saveGoal(goal: Goal): Promise<Goal> {
+  const response = await fetch(`${API_BASE_URL}/goals`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(goal),
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json() as Promise<Goal>;
+}
