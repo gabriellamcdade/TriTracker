@@ -1,4 +1,17 @@
-function Sidebar() {
+type SidebarProps = {
+  activePage: string;
+  onPageChange: (page: string) => void;
+};
+
+function Sidebar({ activePage, onPageChange }: SidebarProps) {
+  const pages = [
+    "Dashboard",
+    "Activities",
+    "Training",
+    "Recovery",
+    "Goals",
+  ];
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -7,11 +20,17 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        <button className="sidebar-link active">Dashboard</button>
-        <button className="sidebar-link">Activities</button>
-        <button className="sidebar-link">Training</button>
-        <button className="sidebar-link">Recovery</button>
-        <button className="sidebar-link">Goals</button>
+        {pages.map((page) => (
+          <button
+            key={page}
+            className={`sidebar-link ${
+              activePage === page ? "active" : ""
+            }`}
+            onClick={() => onPageChange(page)}
+          >
+            {page}
+          </button>
+        ))}
       </nav>
     </aside>
   );

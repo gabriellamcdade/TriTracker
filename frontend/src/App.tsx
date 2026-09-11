@@ -15,6 +15,7 @@ type HealthResponse = {
 
 function App() {
   const [backendConnected, setBackendConnected] = useState(false);
+  const [activePage, setActivePage] = useState("Dashboard");
 
   useEffect(() => {
     async function checkBackendHealth() {
@@ -38,75 +39,140 @@ function App() {
 
   return (
     <div className="dashboard">
-      <Sidebar />
+      <Sidebar
+        activePage={activePage}
+        onPageChange={setActivePage}
+      />
 
       <main className="dashboard-main">
-        <header className="dashboard-header">
-          <div>
+
+        {activePage === "Dashboard" && (
+          <>
+            <header className="dashboard-header">
+              <div>
+                <p className="eyebrow">TRITRACKER</p>
+                <h1>Training Dashboard</h1>
+                <p className="subtitle">
+                  Connected training. Smarter performance.
+                </p>
+              </div>
+
+              <div className="backend-status">
+                <span
+                  className={`status-dot ${
+                    backendConnected ? "connected" : "disconnected"
+                  }`}
+                />
+
+                {backendConnected
+                  ? "Backend connected"
+                  : "Backend disconnected"}
+              </div>
+            </header>
+
+            <section className="metrics-grid">
+              <MetricCard
+                title="Weekly Distance"
+                value="0 km"
+                subtitle="This week"
+              />
+
+              <MetricCard
+                title="Training Time"
+                value="0h 00m"
+                subtitle="This week"
+              />
+
+              <MetricCard
+                title="Training Load"
+                value="0"
+                subtitle="7-day load"
+              />
+
+              <MetricCard
+                title="Activities"
+                value="0"
+                subtitle="This week"
+              />
+            </section>
+
+            <section className="dashboard-grid">
+              <div className="dashboard-panel chart-panel">
+                <TrainingLoadChart />
+              </div>
+
+              <div className="dashboard-panel recovery-panel">
+                <RecoveryGauge />
+              </div>
+            </section>
+
+            <section className="dashboard-grid lower-grid">
+              <div className="dashboard-panel">
+                <RecommendationCard />
+              </div>
+
+              <div className="dashboard-panel">
+                <ActivityList />
+              </div>
+            </section>
+          </>
+        )}
+
+        {activePage === "Activities" && (
+          <div className="dashboard-panel">
             <p className="eyebrow">TRITRACKER</p>
-            <h1>Training Dashboard</h1>
+            <h1>Activities</h1>
+
             <p className="subtitle">
-              Connected training. Smarter performance.
+              Your training activities will appear here.
+            </p>
+
+            <div style={{ marginTop: "30px" }}>
+              <p>Outdoor Run</p>
+              <p>Treadmill</p>
+              <p>Outdoor Ride</p>
+              <p>Indoor Cycle</p>
+              <p>Pool Swim</p>
+              <p>Open Water Swim</p>
+            </div>
+          </div>
+        )}
+
+        {activePage === "Training" && (
+          <div className="dashboard-panel">
+            <p className="eyebrow">TRITRACKER</p>
+            <h1>Training</h1>
+
+            <p className="subtitle">
+              Training load, weekly volume and performance trends
+              will appear here.
             </p>
           </div>
+        )}
 
-          <div className="backend-status">
-            <span
-              className={`status-dot ${
-                backendConnected ? "connected" : "disconnected"
-              }`}
-            />
-            {backendConnected
-              ? "Backend connected"
-              : "Backend disconnected"}
-          </div>
-        </header>
-
-        <section className="metrics-grid">
-          <MetricCard
-            title="Weekly Distance"
-            value="0 km"
-            subtitle="This week"
-          />
-
-          <MetricCard
-            title="Training Time"
-            value="0h 00m"
-            subtitle="This week"
-          />
-
-          <MetricCard
-            title="Training Load"
-            value="0"
-            subtitle="7-day load"
-          />
-
-          <MetricCard
-            title="Activities"
-            value="0"
-            subtitle="This week"
-          />
-        </section>
-
-        <section className="dashboard-grid">
-          <div className="dashboard-panel chart-panel">
-            <TrainingLoadChart />
-          </div>
-
-          <div className="dashboard-panel recovery-panel">
-            <RecoveryGauge />
-          </div>
-        </section>
-
-        <section className="dashboard-grid lower-grid">
+        {activePage === "Recovery" && (
           <div className="dashboard-panel">
-            <RecommendationCard />
-          </div>
+            <p className="eyebrow">TRITRACKER</p>
+            <h1>Recovery</h1>
 
-          <div className="dashboard-panel">
-            <ActivityList />
+            <p className="subtitle">
+              Recovery score, readiness and fatigue analysis
+              will appear here.
+            </p>
           </div>
-        </section>
+        )}
+
+        {activePage === "Goals" && (
+          <div className="dashboard-panel">
+            <p className="eyebrow">TRITRACKER</p>
+            <h1>Goals</h1>
+
+            <p className="subtitle">
+              Triathlon goals and progress tracking will appear here.
+            </p>
+          </div>
+        )}
+
       </main>
     </div>
   );
