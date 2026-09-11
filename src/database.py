@@ -92,3 +92,83 @@ def get_all_activities():
         activities = cursor.fetchall()
 
     return [dict(activity) for activity in activities]
+def initialise_goals_table():
+    with get_connection() as connection:
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS goals (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                race_name TEXT NOT NULL,
+                race_date TEXT,
+                swim_distance_km REAL NOT NULL,
+                bike_distance_km REAL NOT NULL,
+                run_distance_km REAL NOT NULL,
+                swim_target_min INTEGER,
+                bike_target_min INTEGER,
+                run_target_min INTEGER,
+                overall_target_min INTEGER
+            )
+        """)
+
+
+def get_goal():
+    with get_connection() as connection:
+        connection.row_factory = sqlite3.Row
+
+        cursor = connection.execute("""
+            SELECT
+                race_name,
+                race_date,
+                swim_distance_km,
+                bike_distance_km,
+                run_distance_km,
+                swim_target_min,
+                bike_target_min,
+                run_target_min,
+                overall_target_min
+            FROM goals
+            WHERE id = 1
+        """)
+
+        goal = cursor.fetchone()
+
+    return dict(goal) if goal else None
+
+
+def save_goal(goal):
+    with get_connection() as connection:
+        connection.execute("""
+            INSERT INTO goals (
+                id,
+                race_name,
+                race_date,
+                swim_distance_km,
+                bike_distance_km,
+                run_distance_km,
+                swim_target_min,
+                bike_target_min,
+                run_target_min,
+                overall_target_min
+            )
+            VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+
+            ON CONFLICT(id) DO UPDATE SET
+                race_name = excluded.race_name,
+                race_date = excluded.race_date,
+                swim_distance_km = excluded.swim_distance_km,
+                bike_distance_km = excluded.bike_distance_km,
+                run_distance_km = excluded.run_distance_km,
+                swim_target_min = excluded.swim_target_min,
+                bike_target_min = excluded.bike_target_min,
+                run_target_min = excluded.run_target_min,
+                overall_target_min = excluded.overall_target_min
+        """, (
+            goal["race_name"],
+            goal.get("race_date"),
+            goal["swim_distance_km"],
+            goal["bike_distance_km"],
+            goal["run_distance_km"],
+            goal.get("swim_target_min"),
+            goal.get("bike_target_min"),
+            goal.get("run_target_min"),
+            goal.get("overall_target_min"),
+        ))

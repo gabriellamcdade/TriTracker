@@ -74,3 +74,16 @@ type WorkoutRecommendation = {
 export type Recommendation =
   | RestRecommendation
   | WorkoutRecommendation;
+
+
+export type Goal = {
+  race_name: string;
+  race_date: string | null;
+  swim_distance_km: number;
+  bike_distance_km: number;
+  run_distance_km: number;
+  swim_target_min: number | null;
+  bike_target_min: number | null;
+  run_target_min: number | null;
+  overall_target_min: number | null;
+};

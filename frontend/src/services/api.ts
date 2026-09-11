@@ -1,5 +1,6 @@
 import type {
   Activity,
+  Goal,
   HealthResponse,
   Recommendation,
   Recovery,
@@ -43,4 +44,8 @@ export function getActivities(limit = 20): Promise<Activity[]> {
 
 export function getRecommendation(): Promise<Recommendation> {
   return getJson<Recommendation>("/recommendation");
+}
+
+export function getGoal(): Promise<Goal | null> {
+  return getJson<Goal | null>("/goals");
 }

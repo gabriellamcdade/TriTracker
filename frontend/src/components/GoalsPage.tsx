@@ -1,22 +1,84 @@
+import { useEffect, useState } from "react";
+import { getGoal } from "../services/api";
+import type { Goal } from "../types";
+
+function formatMinutes(minutes: number | null) {
+  if (minutes === null) {
+    return "Not set";
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes} min`;
+  }
+
+  return `${hours}h ${remainingMinutes
+    .toString()
+    .padStart(2, "0")}m`;
+}
+
 function GoalsPage() {
+  const [goal, setGoal] = useState<Goal | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadGoal() {
+      try {
+        const data = await getGoal();
+        setGoal(data);
+      } catch (error) {
+        console.error("Could not load goal:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadGoal();
+  }, []);
+
+  if (loading) {
+    return <p className="muted">Loading goal...</p>;
+  }
+
+  if (!goal) {
+    return (
+      <div>
+        <header className="dashboard-header">
+          <div>
+            <p className="eyebrow">TRITRACKER</p>
+            <h1>Goals</h1>
+            <p className="subtitle">
+              Track your progress towards race day.
+            </p>
+          </div>
+        </header>
+
+        <section className="dashboard-panel">
+          <p className="muted">
+            No race goal has been saved yet.
+          </p>
+        </section>
+      </div>
+    );
+  }
+
   const goals = [
     {
       sport: "Swim",
-      distance: "1.5 km",
-      target: "30 min",
-      progress: 70,
+      distance: `${goal.swim_distance_km} km`,
+      target: formatMinutes(goal.swim_target_min),
     },
     {
       sport: "Bike",
-      distance: "40 km",
-      target: "1h 20m",
-      progress: 62,
+      distance: `${goal.bike_distance_km} km`,
+      target: formatMinutes(goal.bike_target_min),
     },
     {
       sport: "Run",
-      distance: "10 km",
-      target: "55 min",
-      progress: 78,
+      distance: `${goal.run_distance_km} km`,
+      target: formatMinutes(goal.run_target_min),
     },
   ];
 
@@ -36,56 +98,52 @@ function GoalsPage() {
       <section className="dashboard-panel race-goal-card">
         <div>
           <p className="panel-label">TARGET RACE</p>
-          <h2>Olympic Triathlon</h2>
+          <h2>{goal.race_name}</h2>
+
           <p className="muted">
-            1.5 km swim · 40 km bike · 10 km run
+            {goal.race_date || "Race date not set"}
           </p>
         </div>
 
         <div className="race-target">
           <span>Target finish</span>
-          <strong>Under 3 hours</strong>
+          <strong>
+            {formatMinutes(goal.overall_target_min)}
+          </strong>
         </div>
       </section>
 
       <section className="goal-grid">
-        {goals.map((goal) => (
-          <article className="dashboard-panel goal-card" key={goal.sport}>
+        {goals.map((item) => (
+          <article
+            className="dashboard-panel goal-card"
+            key={item.sport}
+          >
             <div className="goal-heading">
               <div>
                 <p className="panel-label">
-                  {goal.sport.toUpperCase()}
+                  {item.sport.toUpperCase()}
                 </p>
 
-                <h2>{goal.distance}</h2>
+                <h2>{item.distance}</h2>
               </div>
-
-              <strong className="goal-percentage">
-                {goal.progress}%
-              </strong>
             </div>
 
             <p className="muted">
-              Target: {goal.target}
+              Target: {item.target}
             </p>
-
-            <div className="goal-progress-track">
-              <div
-                className="goal-progress-bar"
-                style={{ width: `${goal.progress}%` }}
-              />
-            </div>
           </article>
         ))}
       </section>
 
       <section className="dashboard-panel">
-        <p className="panel-label">OVERALL GOAL</p>
-        <h2>Race Readiness</h2>
+        <p className="panel-label">RACE PLAN</p>
+        <h2>Target Breakdown</h2>
 
         <p className="muted">
-          Build consistent training across swimming, cycling and
-          running while gradually increasing your weekly workload.
+          Swim {goal.swim_distance_km} km · Bike{" "}
+          {goal.bike_distance_km} km · Run{" "}
+          {goal.run_distance_km} km
         </p>
       </section>
     </div>
