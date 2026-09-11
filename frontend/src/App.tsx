@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
+import ActivitiesPage from "./components/ActivitiesPage";
 
 import Sidebar from "./components/Sidebar";
 import MetricCard from "./components/MetricCard";
@@ -118,25 +119,7 @@ function App() {
           </>
         )}
 
-        {activePage === "Activities" && (
-          <div className="dashboard-panel">
-            <p className="eyebrow">TRITRACKER</p>
-            <h1>Activities</h1>
-
-            <p className="subtitle">
-              Your training activities will appear here.
-            </p>
-
-            <div style={{ marginTop: "30px" }}>
-              <p>Outdoor Run</p>
-              <p>Treadmill</p>
-              <p>Outdoor Ride</p>
-              <p>Indoor Cycle</p>
-              <p>Pool Swim</p>
-              <p>Open Water Swim</p>
-            </div>
-          </div>
-        )}
+        {activePage === "Activities" && <ActivitiesPage />}
 
         {activePage === "Training" && (
           <div className="dashboard-panel">

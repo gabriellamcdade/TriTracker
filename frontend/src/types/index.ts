@@ -9,6 +9,7 @@ export type Activity = {
   strava_id: number;
   date: string;
   sport: Sport;
+  activity_type: string | null;
   distance_km: number;
   duration_min: number;
   avg_hr: number | null;
