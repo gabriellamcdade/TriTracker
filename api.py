@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
+from src.strava_sync import sync_strava_activities
 
 from src.analytics import (
     calculate_training_summary,
@@ -34,7 +35,7 @@ app.add_middleware(
         "http://localhost:5173",
     ],
     allow_credentials=False,
-    allow_methods=["GET", "PUT"],
+    allow_methods=["GET", "PUT", "POST"],
     allow_headers=["Content-Type"],
 )
 
@@ -119,6 +120,9 @@ def get_training_recommendation():
         recent_sports,
         recovery_data,
     )
+@app.post("/strava/sync")
+def sync_strava():
+    return sync_strava_activities()
 
 
 @app.get("/goals")

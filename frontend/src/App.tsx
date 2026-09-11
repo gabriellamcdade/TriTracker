@@ -16,6 +16,7 @@ import {
   getActivities,
   getSummary,
   getTrainingLoad,
+  syncStrava,
 } from "./services/api";
 
 import type {
@@ -30,27 +31,41 @@ type HealthResponse = {
 };
 
 function App() {
-  const [backendConnected, setBackendConnected] = useState(false);
-  const [activePage, setActivePage] = useState("Dashboard");
+  const [backendConnected, setBackendConnected] =
+    useState(false);
 
-  const [summary, setSummary] = useState<TrainingSummary | null>(null);
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activePage, setActivePage] =
+    useState("Dashboard");
+
+  const [summary, setSummary] =
+    useState<TrainingSummary | null>(null);
+
+  const [activities, setActivities] =
+    useState<Activity[]>([]);
+
   const [trainingLoad, setTrainingLoad] =
     useState<WeeklyTrainingLoad[]>([]);
 
-  // Check whether the backend is running
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState("");
+
   useEffect(() => {
     async function checkBackendHealth() {
       try {
-        const response = await fetch("http://127.0.0.1:8000/health");
+        const response = await fetch(
+          "http://127.0.0.1:8000/health"
+        );
 
         if (!response.ok) {
           throw new Error("Backend request failed");
         }
 
-        const data: HealthResponse = await response.json();
+        const data: HealthResponse =
+          await response.json();
 
-        setBackendConnected(data.status === "ok");
+        setBackendConnected(
+          data.status === "ok"
+        );
       } catch {
         setBackendConnected(false);
       }
@@ -59,43 +74,80 @@ function App() {
     checkBackendHealth();
   }, []);
 
-  // Load real dashboard data from the backend
-  useEffect(() => {
-    async function loadDashboardData() {
-      try {
-        const [summaryData, activityData, trainingLoadData] =
-          await Promise.all([
-            getSummary(),
-            getActivities(100),
-            getTrainingLoad(),
-          ]);
+  async function loadDashboardData() {
+    try {
+      const [
+        summaryData,
+        activityData,
+        trainingLoadData,
+      ] = await Promise.all([
+        getSummary(),
+        getActivities(100),
+        getTrainingLoad(),
+      ]);
 
-        setSummary(summaryData);
-        setActivities(activityData);
-        setTrainingLoad(trainingLoadData);
-      } catch (error) {
-        console.error("Could not load dashboard data:", error);
-      }
+      setSummary(summaryData);
+      setActivities(activityData);
+      setTrainingLoad(trainingLoadData);
+    } catch (error) {
+      console.error(
+        "Could not load dashboard data:",
+        error
+      );
     }
+  }
 
+  useEffect(() => {
     loadDashboardData();
   }, []);
 
-  // Calculate dashboard values
+  async function handleStravaSync() {
+    try {
+      setSyncing(true);
+      setSyncMessage("");
+
+      const result = await syncStrava();
+
+      await loadDashboardData();
+
+      if (result.added === 0) {
+        setSyncMessage("Strava is up to date");
+      } else if (result.added === 1) {
+        setSyncMessage("1 new activity added");
+      } else {
+        setSyncMessage(
+          `${result.added} new activities added`
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Could not sync Strava:",
+        error
+      );
+
+      setSyncMessage("Strava sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   const totalDistance = summary
     ? summary.Run.distance_km +
       summary.Bike.distance_km +
       summary.Swim.distance_km
     : 0;
 
-  const totalMinutes = summary?.total_training_minutes ?? 0;
+  const totalMinutes =
+    summary?.total_training_minutes ?? 0;
 
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
 
   const latestTrainingLoad =
     trainingLoad.length > 0
-      ? trainingLoad[trainingLoad.length - 1].total_training_load
+      ? trainingLoad[
+          trainingLoad.length - 1
+        ].total_training_load
       : 0;
 
   return (
@@ -110,26 +162,50 @@ function App() {
           <>
             <header className="dashboard-header">
               <div>
-                <p className="eyebrow">TriTracker</p>
+                <p className="eyebrow">
+                  TriTracker
+                </p>
+
                 <h1>Training Dashboard</h1>
 
                 <p className="subtitle">
-                  Connected training. Smarter performance.
+                  Connected training. Smarter
+                  performance.
                 </p>
               </div>
 
-              <div className="backend-status">
-                <span
-                  className={`status-dot ${
-                    backendConnected
-                      ? "connected"
-                      : "disconnected"
-                  }`}
-                />
+              <div className="dashboard-actions">
+                <div className="sync-area">
+                  <button
+                    className="strava-sync-button"
+                    onClick={handleStravaSync}
+                    disabled={syncing}
+                  >
+                    {syncing
+                      ? "Syncing..."
+                      : "↻ Sync Strava"}
+                  </button>
 
-                {backendConnected
-                  ? "Backend connected"
-                  : "Backend disconnected"}
+                  {syncMessage && (
+                    <span className="sync-message">
+                      {syncMessage}
+                    </span>
+                  )}
+                </div>
+
+                <div className="backend-status">
+                  <span
+                    className={`status-dot ${
+                      backendConnected
+                        ? "connected"
+                        : "disconnected"
+                    }`}
+                  />
+
+                  {backendConnected
+                    ? "Backend connected"
+                    : "Backend disconnected"}
+                </div>
               </div>
             </header>
 
@@ -183,13 +259,21 @@ function App() {
           </>
         )}
 
-        {activePage === "Activities" && <ActivitiesPage />}
+        {activePage === "Activities" && (
+          <ActivitiesPage />
+        )}
 
-        {activePage === "Training" && <TrainingPage />}
+        {activePage === "Training" && (
+          <TrainingPage />
+        )}
 
-        {activePage === "Recovery" && <RecoveryPage />}
+        {activePage === "Recovery" && (
+          <RecoveryPage />
+        )}
 
-        {activePage === "Goals" && <GoalsPage />}
+        {activePage === "Goals" && (
+          <GoalsPage />
+        )}
       </main>
     </div>
   );

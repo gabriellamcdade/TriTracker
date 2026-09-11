@@ -4,6 +4,7 @@ import type {
   HealthResponse,
   Recommendation,
   Recovery,
+  StravaSyncResult,
   TrainingSummary,
   WeeklyTrainingLoad,
 } from "../types";
@@ -65,4 +66,21 @@ export async function saveGoal(goal: Goal): Promise<Goal> {
   }
 
   return response.json() as Promise<Goal>;
+}
+
+export async function syncStrava(): Promise<StravaSyncResult> {
+  const response = await fetch(
+    `${API_BASE_URL}/strava/sync`,
+    {
+      method: "POST",
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json() as Promise<StravaSyncResult>;
 }

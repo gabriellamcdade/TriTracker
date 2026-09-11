@@ -819,3 +819,54 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+.dashboard-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sync-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.strava-sync-button {
+  padding: 10px 16px;
+  border: 1px solid #40e0d0;
+  border-radius: 999px;
+  background: #40e0d0;
+  color: #071211;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.strava-sync-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.strava-sync-button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.sync-message {
+  color: #788988;
+  font-size: 0.72rem;
+}
+
+@media (max-width: 700px) {
+  .dashboard-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .sync-area {
+    align-items: flex-start;
+  }
+}

@@ -279,3 +279,22 @@ def test_summary_excludes_old_activities(monkeypatch):
     assert data["Bike"]["distance_km"] == 0
 
     assert data["total_training_minutes"] == 30
+
+def test_strava_sync_endpoint(monkeypatch):
+    fake_result = {
+        "downloaded": 10,
+        "added": 3,
+        "already_stored": 6,
+        "skipped": 1,
+    }
+
+    monkeypatch.setattr(
+        api,
+        "sync_strava_activities",
+        lambda: fake_result,
+    )
+
+    response = client.post("/strava/sync")
+
+    assert response.status_code == 200
+    assert response.json() == fake_result

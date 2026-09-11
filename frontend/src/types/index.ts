@@ -87,3 +87,10 @@ export type Goal = {
   run_target_min: number | null;
   overall_target_min: number | null;
 };
+
+export type StravaSyncResult = {
+  downloaded: number;
+  added: number;
+  already_stored: number;
+  skipped: number;
+};
