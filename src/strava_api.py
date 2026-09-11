@@ -2,6 +2,7 @@ import json
 import os
 import secrets
 import threading
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import parse_qs, urlencode, urlparse
@@ -24,57 +25,221 @@ def save_tokens(tokens):
         json.dump(tokens, file, indent=2)
 
 
-def exchange_code_for_tokens(code):
-    response = requests.post(
-        "https://www.strava.com/api/v3/oauth/token",
-        data={
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "code": code,
-            "grant_type": "authorization_code",
-        },
-        timeout=20,
-    )
+def load_tokens():
+    try:
+        with open(TOKEN_FILE, "r") as file:
+            tokens = json.load(file)
 
-    response.raise_for_status()
-    tokens = response.json()
+    except FileNotFoundError:
+        raise RuntimeError(
+            "No saved Strava tokens were found. "
+            "Connect TriTracker to Strava first."
+        )
+
+    except json.JSONDecodeError:
+        raise RuntimeError(
+            "The saved Strava token file is not valid JSON."
+        )
+
+    if "access_token" not in tokens:
+        raise RuntimeError(
+            "The saved Strava token file does not "
+            "contain an access token."
+        )
+
+    return tokens
+
+
+def exchange_code_for_tokens(code):
+    try:
+        response = requests.post(
+            "https://www.strava.com/api/v3/oauth/token",
+            data={
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "code": code,
+                "grant_type": "authorization_code",
+            },
+            timeout=20,
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as error:
+        raise RuntimeError(
+            f"Could not exchange the Strava code: {error}"
+        )
+
+    try:
+        tokens = response.json()
+
+    except ValueError:
+        raise RuntimeError(
+            "Strava returned invalid token data."
+        )
 
     save_tokens(tokens)
+
+    return tokens
+
+
+def refresh_access_token(refresh_token):
+    try:
+        response = requests.post(
+            "https://www.strava.com/api/v3/oauth/token",
+            data={
+                "client_id": CLIENT_ID,
+                "client_secret": CLIENT_SECRET,
+                "grant_type": "refresh_token",
+                "refresh_token": refresh_token,
+            },
+            timeout=20,
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as error:
+        raise RuntimeError(
+            f"Could not refresh the Strava token: {error}"
+        )
+
+    try:
+        tokens = response.json()
+
+    except ValueError:
+        raise RuntimeError(
+            "Strava returned invalid token data."
+        )
+
+    save_tokens(tokens)
+
+    return tokens
+
+
+def get_valid_tokens():
+    tokens = load_tokens()
+
+    expires_at = tokens.get("expires_at", 0)
+
+    # Refresh slightly before expiry so a token does not
+    # expire in the middle of a request.
+    if expires_at <= int(time.time()) + 60:
+        refresh_token = tokens.get("refresh_token")
+
+        if not refresh_token:
+            raise RuntimeError(
+                "No Strava refresh token was found. "
+                "Reconnect TriTracker to Strava."
+            )
+
+        tokens = refresh_access_token(
+            refresh_token
+        )
+
     return tokens
 
 
 def connect_to_strava():
+    if not CLIENT_ID:
+        raise RuntimeError(
+            "STRAVA_CLIENT_ID is missing from .env."
+        )
+
+    if not CLIENT_SECRET:
+        raise RuntimeError(
+            "STRAVA_CLIENT_SECRET is missing from .env."
+        )
+
+    if not REDIRECT_URI:
+        raise RuntimeError(
+            "STRAVA_REDIRECT_URI is missing from .env."
+        )
+
+    parsed_redirect = urlparse(REDIRECT_URI)
+
+    callback_host = (
+        parsed_redirect.hostname or "localhost"
+    )
+
+    callback_port = parsed_redirect.port
+
+    if callback_port is None:
+        raise RuntimeError(
+            "STRAVA_REDIRECT_URI must include a port."
+        )
+
     state = secrets.token_urlsafe(16)
     callback_result = {}
 
     class CallbackHandler(BaseHTTPRequestHandler):
         def do_GET(self):
-            query = parse_qs(urlparse(self.path).query)
+            query = parse_qs(
+                urlparse(self.path).query
+            )
 
-            if query.get("state", [None])[0] != state:
+            returned_state = query.get(
+                "state",
+                [None],
+            )[0]
+
+            if returned_state != state:
                 self.send_response(400)
                 self.end_headers()
-                self.wfile.write(b"Invalid OAuth state.")
+
+                self.wfile.write(
+                    b"Invalid OAuth state."
+                )
+
                 return
 
             if "error" in query:
-                callback_result["error"] = query["error"][0]
-            else:
-                callback_result["code"] = query["code"][0]
-                callback_result["scope"] = query.get("scope", [""])[0]
+                callback_result["error"] = (
+                    query["error"][0]
+                )
+
+            elif "code" in query:
+                callback_result["code"] = (
+                    query["code"][0]
+                )
+
+                callback_result["scope"] = (
+                    query.get(
+                        "scope",
+                        [""],
+                    )[0]
+                )
 
             self.send_response(200)
             self.end_headers()
+
             self.wfile.write(
-                b"Strava connected successfully. You can close this tab."
+                b"Strava connected successfully. "
+                b"You can close this tab."
             )
 
         def log_message(self, format, *args):
             return
 
-    server = HTTPServer(("localhost", 8000), CallbackHandler)
+    try:
+        server = HTTPServer(
+            (
+                callback_host,
+                callback_port,
+            ),
+            CallbackHandler,
+        )
 
-    server_thread = threading.Thread(target=server.handle_request)
+    except OSError as error:
+        raise RuntimeError(
+            f"Could not start the Strava callback "
+            f"server on port {callback_port}: {error}"
+        )
+
+    server_thread = threading.Thread(
+        target=server.handle_request,
+        daemon=True,
+    )
+
     server_thread.start()
 
     parameters = {
@@ -92,6 +257,7 @@ def connect_to_strava():
     )
 
     print("Opening Strava in your browser...")
+
     webbrowser.open(authorization_url)
 
     server_thread.join()
@@ -99,58 +265,49 @@ def connect_to_strava():
 
     if "error" in callback_result:
         raise RuntimeError(
-            f"Strava authorization was not granted: "
+            "Strava authorization was not granted: "
             f"{callback_result['error']}"
         )
 
-    if "activity:read_all" not in callback_result["scope"]:
+    if "code" not in callback_result:
+        raise RuntimeError(
+            "Strava did not return an authorization code."
+        )
+
+    if (
+        "activity:read_all"
+        not in callback_result.get("scope", "")
+    ):
         raise RuntimeError(
             "TriTracker needs activity:read_all permission."
         )
 
-    return exchange_code_for_tokens(callback_result["code"])
-def load_tokens():
-    try:
-        with open(TOKEN_FILE, "r") as file:
-            tokens = json.load(file)
-
-    except FileNotFoundError:
-        raise RuntimeError(
-            "No saved Strava tokens were found. "
-            "Run connect_to_strava() first."
-        )
-
-    except json.JSONDecodeError:
-        raise RuntimeError(
-            "The saved Strava token file is not valid JSON."
-        )
-
-    if "access_token" not in tokens:
-        raise RuntimeError(
-            "The saved Strava token file does not contain an access token."
-        )
-
-    return tokens
+    return exchange_code_for_tokens(
+        callback_result["code"]
+    )
 
 
-def get_authenticated_athlete():
-    tokens = load_tokens()
-    access_token = tokens["access_token"]
+def authenticated_get(url, params=None):
+    tokens = get_valid_tokens()
 
     headers = {
-        "Authorization": f"Bearer {access_token}"
+        "Authorization": (
+            f"Bearer {tokens['access_token']}"
+        )
     }
 
     try:
         response = requests.get(
-            "https://www.strava.com/api/v3/athlete",
+            url,
             headers=headers,
+            params=params,
             timeout=20,
         )
 
     except requests.Timeout:
         raise RuntimeError(
-            "The request to Strava timed out. Please try again."
+            "The request to Strava timed out. "
+            "Please try again."
         )
 
     except requests.RequestException as error:
@@ -158,18 +315,49 @@ def get_authenticated_athlete():
             f"Could not connect to Strava: {error}"
         )
 
+    # If Strava rejects the token unexpectedly,
+    # refresh once and retry.
     if response.status_code == 401:
-        raise RuntimeError(
-            "Your Strava access token is invalid or has expired. "
-            "Refresh the token, then try again."
+        refresh_token = tokens.get(
+            "refresh_token"
         )
+
+        if not refresh_token:
+            raise RuntimeError(
+                "Your Strava session has expired "
+                "and cannot be refreshed."
+            )
+
+        tokens = refresh_access_token(
+            refresh_token
+        )
+
+        headers = {
+            "Authorization": (
+                f"Bearer {tokens['access_token']}"
+            )
+        }
+
+        try:
+            response = requests.get(
+                url,
+                headers=headers,
+                params=params,
+                timeout=20,
+            )
+
+        except requests.RequestException as error:
+            raise RuntimeError(
+                f"Could not connect to Strava: {error}"
+            )
 
     try:
         response.raise_for_status()
 
     except requests.HTTPError:
         raise RuntimeError(
-            f"Strava returned an error: {response.status_code}"
+            "Strava returned an error: "
+            f"{response.status_code}"
         )
 
     try:
@@ -177,64 +365,33 @@ def get_authenticated_athlete():
 
     except ValueError:
         raise RuntimeError(
-            "Strava returned a response that was not valid JSON."
+            "Strava returned a response "
+            "that was not valid JSON."
         )
+
+
+def get_authenticated_athlete():
+    return authenticated_get(
+        "https://www.strava.com/api/v3/athlete"
+    )
 
 
 def get_activities(page=1, per_page=10):
     if page < 1:
-        raise ValueError("page must be 1 or greater.")
+        raise ValueError(
+            "page must be 1 or greater."
+        )
 
     if not 1 <= per_page <= 200:
-        raise ValueError("per_page must be between 1 and 200.")
-
-    tokens = load_tokens()
-
-    headers = {
-        "Authorization": f"Bearer {tokens['access_token']}"
-    }
-
-    parameters = {
-        "page": page,
-        "per_page": per_page,
-    }
-
-    try:
-        response = requests.get(
-            "https://www.strava.com/api/v3/athlete/activities",
-            headers=headers,
-            params=parameters,
-            timeout=20,
+        raise ValueError(
+            "per_page must be between 1 and 200."
         )
 
-    except requests.Timeout:
-        raise RuntimeError(
-            "The request to Strava timed out. Please try again."
-        )
-
-    except requests.RequestException as error:
-        raise RuntimeError(
-            f"Could not connect to Strava: {error}"
-        )
-
-    if response.status_code == 401:
-        raise RuntimeError(
-            "Your Strava access token is invalid or expired. "
-            "Refresh it and try again."
-        )
-
-    try:
-        response.raise_for_status()
-
-    except requests.HTTPError:
-        raise RuntimeError(
-            f"Strava returned an error: {response.status_code}"
-        )
-
-    try:
-        return response.json()
-
-    except ValueError:
-        raise RuntimeError(
-            "Strava returned a response that was not valid JSON."
-        )
+    return authenticated_get(
+        "https://www.strava.com/api/v3/"
+        "athlete/activities",
+        params={
+            "page": page,
+            "per_page": per_page,
+        },
+    )

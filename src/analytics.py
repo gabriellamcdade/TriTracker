@@ -1,3 +1,23 @@
+from datetime import date, datetime, timedelta
+def get_current_week_activities(activities):
+    today = date.today()
+
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+
+    current_week_activities = []
+
+    for activity in activities:
+        activity_date = datetime.strptime(
+            activity["date"],
+            "%Y-%m-%d"
+        ).date()
+
+        if start_of_week <= activity_date <= end_of_week:
+            current_week_activities.append(activity)
+
+    return current_week_activities
+
 def get_zone(heart_rate):
     if heart_rate < 120:
         return "Zone 1"

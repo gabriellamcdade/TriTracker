@@ -2,7 +2,10 @@ from fastapi import FastAPI, Query
 from pydantic import BaseModel, Field
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.analytics import calculate_training_summary
+from src.analytics import (
+    calculate_training_summary,
+    get_current_week_activities,
+)
 from src.database import (
     get_all_activities,
     get_goal,
@@ -69,7 +72,14 @@ def get_activities(
 @app.get("/summary")
 def get_summary():
     activities = get_all_activities()
-    return calculate_training_summary(activities)
+
+    current_week_activities = get_current_week_activities(
+        activities
+    )
+
+    return calculate_training_summary(
+        current_week_activities
+    )
 
 
 @app.get("/training-load")

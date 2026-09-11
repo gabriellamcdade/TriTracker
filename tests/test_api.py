@@ -34,11 +34,20 @@ def test_get_activities_uses_test_data(monkeypatch):
     assert response.status_code == 200
     assert response.json() == [test_activities[0]]
 
+from datetime import date, timedelta
+
+
 def test_get_summary_uses_test_activities(monkeypatch):
+    today = date.today()
+    start_of_week = today - timedelta(days=today.weekday())
+
+    run_date = start_of_week
+    bike_date = start_of_week + timedelta(days=1)
+
     test_activities = [
         {
             "strava_id": 1,
-            "date": "2026-08-12",
+            "date": run_date.isoformat(),
             "sport": "Run",
             "distance_km": 5.0,
             "duration_min": 30,
@@ -46,7 +55,7 @@ def test_get_summary_uses_test_activities(monkeypatch):
         },
         {
             "strava_id": 2,
-            "date": "2026-08-11",
+            "date": bike_date.isoformat(),
             "sport": "Bike",
             "distance_km": 20.0,
             "duration_min": 60,
@@ -54,8 +63,11 @@ def test_get_summary_uses_test_activities(monkeypatch):
         },
     ]
 
-    # Prevents the route from using your real SQLite database.
-    monkeypatch.setattr(api, "get_all_activities", lambda: test_activities)
+    monkeypatch.setattr(
+        api,
+        "get_all_activities",
+        lambda: test_activities,
+    )
 
     response = client.get("/summary")
 
@@ -218,3 +230,52 @@ def test_get_recommendation_uses_test_data(monkeypatch):
     assert data["duration_min"] == 60
     assert data["intensity"] == "Zone 2"
     assert data["race_distance"] == "Olympic"
+
+def test_summary_excludes_old_activities(monkeypatch):
+    from datetime import date, timedelta
+
+    today = date.today()
+    start_of_week = today - timedelta(
+        days=today.weekday()
+    )
+
+    old_date = start_of_week - timedelta(days=1)
+
+    test_activities = [
+        {
+            "strava_id": 1,
+            "date": today.isoformat(),
+            "sport": "Run",
+            "distance_km": 5.0,
+            "duration_min": 30,
+            "avg_hr": 150,
+        },
+        {
+            "strava_id": 2,
+            "date": old_date.isoformat(),
+            "sport": "Bike",
+            "distance_km": 40.0,
+            "duration_min": 120,
+            "avg_hr": 140,
+        },
+    ]
+
+    monkeypatch.setattr(
+        api,
+        "get_all_activities",
+        lambda: test_activities,
+    )
+
+    response = client.get("/summary")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["Run"]["duration_min"] == 30
+    assert data["Run"]["distance_km"] == 5.0
+
+    assert data["Bike"]["duration_min"] == 0
+    assert data["Bike"]["distance_km"] == 0
+
+    assert data["total_training_minutes"] == 30
