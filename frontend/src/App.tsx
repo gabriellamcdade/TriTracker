@@ -9,6 +9,7 @@ import RecommendationCard from "./components/RecommendationCard";
 import ActivityList from "./components/ActivityList";
 import ActivitiesPage from "./components/ActivitiesPage";
 import TrainingPage from "./components/TrainingPage";
+import RecoveryPage from "./components/RecoveryPage";
 
 import {
   getActivities,
@@ -185,17 +186,7 @@ function App() {
 
         {activePage === "Training" && <TrainingPage />}
 
-        {activePage === "Recovery" && (
-          <div className="dashboard-panel">
-            <p className="eyebrow">TRITRACKER</p>
-            <h1>Recovery</h1>
-
-            <p className="subtitle">
-              Recovery score, readiness and fatigue analysis
-              will appear here.
-            </p>
-          </div>
-        )}
+        {activePage === "Recovery" && <RecoveryPage />}
 
         {activePage === "Goals" && (
           <div className="dashboard-panel">
