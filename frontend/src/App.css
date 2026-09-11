@@ -636,3 +636,87 @@ button {
     grid-template-columns: 1fr;
   }
 }
+.race-goal-card {
+  min-height: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.race-goal-card h2 {
+  margin: 0 0 8px;
+}
+
+.race-target {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: right;
+}
+
+.race-target span {
+  color: #617271;
+  font-size: 0.75rem;
+}
+
+.race-target strong {
+  color: #52d6a5;
+  font-size: 1.2rem;
+}
+
+.goal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.goal-card {
+  min-height: auto;
+}
+
+.goal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.goal-heading h2 {
+  margin: 0;
+}
+
+.goal-percentage {
+  color: #52d6a5;
+}
+
+.goal-progress-track {
+  width: 100%;
+  height: 8px;
+  margin-top: 22px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #182222;
+}
+
+.goal-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: #52d6a5;
+}
+
+@media (max-width: 800px) {
+  .goal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .race-goal-card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .race-target {
+    text-align: left;
+  }
+}

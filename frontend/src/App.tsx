@@ -10,6 +10,7 @@ import ActivityList from "./components/ActivityList";
 import ActivitiesPage from "./components/ActivitiesPage";
 import TrainingPage from "./components/TrainingPage";
 import RecoveryPage from "./components/RecoveryPage";
+import GoalsPage from "./components/GoalsPage";
 
 import {
   getActivities,
@@ -188,16 +189,7 @@ function App() {
 
         {activePage === "Recovery" && <RecoveryPage />}
 
-        {activePage === "Goals" && (
-          <div className="dashboard-panel">
-            <p className="eyebrow">TRITRACKER</p>
-            <h1>Goals</h1>
-
-            <p className="subtitle">
-              Triathlon goals and progress tracking will appear here.
-            </p>
-          </div>
-        )}
+        {activePage === "Goals" && <GoalsPage />}
       </main>
     </div>
   );
