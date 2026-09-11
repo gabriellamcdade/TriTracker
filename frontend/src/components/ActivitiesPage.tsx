@@ -34,7 +34,7 @@ function ActivitiesPage() {
     <div>
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">TRITRACKER</p>
+          <p className="eyebrow">TriTracker</p>
           <h1>Activities</h1>
           <p className="subtitle">
             Your recent run, bike and swim training.

@@ -110,7 +110,7 @@ function App() {
           <>
             <header className="dashboard-header">
               <div>
-                <p className="eyebrow">TRITRACKER</p>
+                <p className="eyebrow">TriTracker</p>
                 <h1>Training Dashboard</h1>
 
                 <p className="subtitle">

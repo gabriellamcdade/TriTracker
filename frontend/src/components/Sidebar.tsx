@@ -15,8 +15,15 @@ function Sidebar({ activePage, onPageChange }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="sidebar-logo">TT</div>
-        <span>TRITRACKER</span>
+        <img
+          src="/tritracker-logo.png"
+          alt="TriTracker logo"
+          className="sidebar-logo-image"
+        />
+
+        <span className="sidebar-brand-name">
+          TriTracker
+        </span>
       </div>
 
       <nav className="sidebar-nav">

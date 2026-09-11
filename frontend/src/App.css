@@ -47,15 +47,18 @@ button {
   font-size: 0.8rem;
 }
 
-.sidebar-logo {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 2px solid #52d6a5;
-  border-radius: 50%;
-  color: #52d6a5;
-  font-weight: 800;
+.sidebar-logo-image {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.sidebar-brand-name {
+  color: #f5f8f7;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .sidebar-nav {
@@ -79,7 +82,7 @@ button {
 .sidebar-link:hover,
 .sidebar-link.active {
   background: #142120;
-  color: #52d6a5;
+  color: #40e0d0;
 }
 
 .dashboard-main {
@@ -98,7 +101,7 @@ button {
 .eyebrow,
 .panel-label {
   margin: 0 0 8px;
-  color: #52d6a5;
+  color: #40e0d0;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -135,8 +138,8 @@ button {
 }
 
 .status-dot.connected {
-  background: #52d6a5;
-  box-shadow: 0 0 10px #52d6a5;
+  background: #40e0d0;
+  box-shadow: 0 0 10px #40e0d0;
 }
 
 .status-dot.disconnected {
@@ -208,7 +211,7 @@ button {
 }
 
 .panel-value {
-  color: #52d6a5;
+  color: #40e0d0;
   font-weight: 700;
 }
 
@@ -245,7 +248,11 @@ button {
 .chart-bar {
   width: 100%;
   border-radius: 8px;
-  background: linear-gradient(180deg, #63e2b0, #248c70);
+ background: linear-gradient(
+  180deg,
+  #40e0d0,
+  #159e94
+);
 }
 
 .recovery-content {
@@ -286,7 +293,7 @@ button {
 
 .recovery-status {
   margin: 0 0 6px;
-  color: #52d6a5;
+  color: #40e0d0;
   font-weight: 600;
 }
 
@@ -305,8 +312,8 @@ button {
   display: inline-block;
   padding: 5px 9px;
   border-radius: 6px;
-  background: rgba(82, 214, 165, 0.12);
-  color: #52d6a5;
+  background: rgba(64, 224, 208, 0.12);
+  color: #40e0d0;
   font-size: 0.68rem;
   font-weight: 700;
 }
@@ -356,7 +363,7 @@ button {
   margin-right: 12px;
   border-radius: 10px;
   background: #152522;
-  color: #52d6a5;
+  color: #40e0d0;
   font-weight: 700;
 }
 
@@ -426,9 +433,9 @@ button {
 
 .activity-filter:hover,
 .activity-filter.active {
-  color: #52d6a5;
-  border-color: #52d6a5;
-  background: rgba(82, 214, 165, 0.08);
+  color: #40e0d0;
+  border-color: #40e0d0;
+  background: rgba(64, 224, 208, 0.08);
 }
 
 .activities-page-panel {
@@ -460,7 +467,7 @@ button {
   place-items: center;
   border-radius: 10px;
   background: #152522;
-  color: #52d6a5;
+  color: #40e0d0;
   font-weight: 700;
 }
 
@@ -529,7 +536,7 @@ button {
 }
 
 .training-page-value {
-  color: #52d6a5;
+  color: #40e0d0;
   font-size: 0.75rem;
 }
 
@@ -545,7 +552,11 @@ button {
 
 .training-page-bar {
   width: 100%;
-  background: linear-gradient(180deg, #63e2b0, #248c70);
+  background: linear-gradient(
+  180deg,
+  #40e0d0,
+  #159e94
+);
   border-radius: 8px;
 }
 
@@ -661,7 +672,7 @@ button {
 }
 
 .race-target strong {
-  color: #52d6a5;
+  color: #40e0d0;
   font-size: 1.2rem;
 }
 
@@ -687,7 +698,7 @@ button {
 }
 
 .goal-percentage {
-  color: #52d6a5;
+  color: #40e0d0;
 }
 
 .goal-progress-track {
@@ -702,7 +713,7 @@ button {
 .goal-progress-bar {
   height: 100%;
   border-radius: 999px;
-  background: #52d6a5;
+  background: #40e0d0;
 }
 
 @media (max-width: 800px) {
@@ -731,8 +742,8 @@ button {
 
 .goal-edit-button,
 .goal-save-button {
-  border: 1px solid #52d6a5;
-  background: #52d6a5;
+  border: 1px solid #40e0d0;
+  background: #40e0d0;
   color: #08110f;
 }
 
@@ -784,7 +795,7 @@ button {
 }
 
 .goal-form-field input:focus {
-  border-color: #52d6a5;
+  border-color: #40e0d0;
 }
 
 .goal-form-actions {

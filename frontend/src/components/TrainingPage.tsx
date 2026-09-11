@@ -51,7 +51,7 @@ function TrainingPage() {
     <div>
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">TRITRACKER</p>
+          <p className="eyebrow">TriTracker</p>
           <h1>Training</h1>
           <p className="subtitle">
             Your training volume and weekly performance trends.

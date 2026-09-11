@@ -101,7 +101,7 @@ function GoalsPage() {
       <div>
         <header className="dashboard-header">
           <div>
-            <p className="eyebrow">TRITRACKER</p>
+            <p className="eyebrow">TriTracker</p>
             <h1>Goals</h1>
           </div>
         </header>
@@ -137,7 +137,8 @@ function GoalsPage() {
     <div>
       <header className="dashboard-header">
         <div>
-          <p className="eyebrow">TRITRACKER</p>
+          <p className="eyebrow">TriTracker</p>
+
           <h1>Goals</h1>
 
           <p className="subtitle">
