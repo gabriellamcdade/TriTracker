@@ -8,6 +8,7 @@ import RecoveryGauge from "./components/RecoveryGauge";
 import RecommendationCard from "./components/RecommendationCard";
 import ActivityList from "./components/ActivityList";
 import ActivitiesPage from "./components/ActivitiesPage";
+import TrainingPage from "./components/TrainingPage";
 
 import {
   getActivities,
@@ -182,17 +183,7 @@ function App() {
 
         {activePage === "Activities" && <ActivitiesPage />}
 
-        {activePage === "Training" && (
-          <div className="dashboard-panel">
-            <p className="eyebrow">TRITRACKER</p>
-            <h1>Training</h1>
-
-            <p className="subtitle">
-              Training load, weekly volume and performance trends
-              will appear here.
-            </p>
-          </div>
-        )}
+        {activePage === "Training" && <TrainingPage />}
 
         {activePage === "Recovery" && (
           <div className="dashboard-panel">
