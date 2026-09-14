@@ -172,3 +172,54 @@ def save_goal(goal):
             goal.get("run_target_min"),
             goal.get("overall_target_min"),
         ))
+
+
+def initialise_hr_profile_table():
+    with get_connection() as connection:
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS hr_profile (
+                id INTEGER PRIMARY KEY CHECK (id = 1),
+                max_hr INTEGER NOT NULL,
+                resting_hr INTEGER NOT NULL
+            )
+        """)
+
+
+def get_hr_profile():
+    initialise_hr_profile_table()
+
+    with get_connection() as connection:
+        connection.row_factory = sqlite3.Row
+
+        cursor = connection.execute("""
+            SELECT
+                max_hr,
+                resting_hr
+            FROM hr_profile
+            WHERE id = 1
+        """)
+
+        profile = cursor.fetchone()
+
+    return dict(profile) if profile else None
+
+
+def save_hr_profile(profile):
+    initialise_hr_profile_table()
+
+    with get_connection() as connection:
+        connection.execute("""
+            INSERT INTO hr_profile (
+                id,
+                max_hr,
+                resting_hr
+            )
+            VALUES (1, ?, ?)
+
+            ON CONFLICT(id) DO UPDATE SET
+                max_hr = excluded.max_hr,
+                resting_hr = excluded.resting_hr
+        """, (
+            profile["max_hr"],
+            profile["resting_hr"],
+        ))

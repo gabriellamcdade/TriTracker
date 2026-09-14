@@ -3,13 +3,17 @@ type SidebarProps = {
   onPageChange: (page: string) => void;
 };
 
-function Sidebar({ activePage, onPageChange }: SidebarProps) {
+function Sidebar({
+  activePage,
+  onPageChange,
+}: SidebarProps) {
   const pages = [
     "Dashboard",
     "Activities",
     "Training",
     "Recovery",
     "Goals",
+    "Settings",
   ];
 
   return (
@@ -31,9 +35,13 @@ function Sidebar({ activePage, onPageChange }: SidebarProps) {
           <button
             key={page}
             className={`sidebar-link ${
-              activePage === page ? "active" : ""
+              activePage === page
+                ? "active"
+                : ""
             }`}
-            onClick={() => onPageChange(page)}
+            onClick={() =>
+              onPageChange(page)
+            }
           >
             {page}
           </button>

@@ -11,6 +11,8 @@ from src.database import (
     get_all_activities,
     get_goal,
     save_goal,
+    get_hr_profile,
+    save_hr_profile,
 )
 from src.training_load import (
     get_weekly_training_load,
@@ -53,6 +55,19 @@ class GoalInput(BaseModel):
     run_target_min: int | None = Field(default=None, gt=0)
     overall_target_min: int | None = Field(default=None, gt=0)
 
+class HRProfileInput(BaseModel):
+    max_hr: int = Field(gt=0, le=250)
+    resting_hr: int = Field(gt=0, le=150)
+
+@app.get("/hr-profile")
+def get_hr_profile_data():
+    return get_hr_profile()
+
+
+@app.put("/hr-profile")
+def update_hr_profile(profile: HRProfileInput):
+    save_hr_profile(profile.model_dump())
+    return get_hr_profile()
 
 @app.get("/health")
 def health_check():

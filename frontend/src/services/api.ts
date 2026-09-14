@@ -2,6 +2,7 @@ import type {
   Activity,
   Goal,
   HealthResponse,
+  HRProfile,
   Recommendation,
   Recovery,
   StravaSyncResult,
@@ -83,4 +84,30 @@ export async function syncStrava(): Promise<StravaSyncResult> {
   }
 
   return response.json() as Promise<StravaSyncResult>;
+}
+export function getHRProfile(): Promise<HRProfile | null> {
+  return getJson<HRProfile | null>("/hr-profile");
+}
+
+export async function saveHRProfile(
+  profile: HRProfile
+): Promise<HRProfile> {
+  const response = await fetch(
+    `${API_BASE_URL}/hr-profile`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(profile),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `API request failed: ${response.status} ${response.statusText}`
+    );
+  }
+
+  return response.json() as Promise<HRProfile>;
 }

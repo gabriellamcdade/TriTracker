@@ -94,3 +94,7 @@ export type StravaSyncResult = {
   already_stored: number;
   skipped: number;
 };
+export type HRProfile = {
+  max_hr: number;
+  resting_hr: number;
+};

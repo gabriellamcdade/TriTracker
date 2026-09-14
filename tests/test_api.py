@@ -298,3 +298,55 @@ def test_strava_sync_endpoint(monkeypatch):
 
     assert response.status_code == 200
     assert response.json() == fake_result
+
+
+def test_get_hr_profile(monkeypatch):
+    test_profile = {
+        "max_hr": 195,
+        "resting_hr": 55,
+    }
+
+    monkeypatch.setattr(
+        api,
+        "get_hr_profile",
+        lambda: test_profile,
+    )
+
+    response = client.get("/hr-profile")
+
+    assert response.status_code == 200
+    assert response.json() == test_profile
+
+
+def test_update_hr_profile(monkeypatch):
+    saved_profile = {}
+
+    def fake_save_hr_profile(profile):
+        saved_profile.update(profile)
+
+    monkeypatch.setattr(
+        api,
+        "save_hr_profile",
+        fake_save_hr_profile,
+    )
+
+    monkeypatch.setattr(
+        api,
+        "get_hr_profile",
+        lambda: saved_profile,
+    )
+
+    response = client.put(
+        "/hr-profile",
+        json={
+            "max_hr": 195,
+            "resting_hr": 55,
+        },
+    )
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "max_hr": 195,
+        "resting_hr": 55,
+    }

@@ -11,6 +11,7 @@ import ActivitiesPage from "./components/ActivitiesPage";
 import TrainingPage from "./components/TrainingPage";
 import RecoveryPage from "./components/RecoveryPage";
 import GoalsPage from "./components/GoalsPage";
+import SettingsPage from "./components/SettingsPage";
 
 import {
   getActivities,
@@ -273,6 +274,10 @@ function App() {
 
         {activePage === "Goals" && (
           <GoalsPage />
+        )}
+
+        {activePage === "Settings" && (
+            <SettingsPage />
         )}
       </main>
     </div>
