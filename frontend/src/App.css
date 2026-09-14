@@ -901,3 +901,61 @@ button {
 .dashboard-panel + .dashboard-panel {
   margin-top: 24px;
 }
+.race-progress-card {
+  margin-bottom: 24px;
+}
+
+.race-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.race-countdown strong {
+  font-size: 2rem;
+  color: #40e0d0;
+  line-height: 1;
+}
+
+.race-countdown span {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.race-target-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.race-target-grid div {
+  padding: 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.race-target-grid strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.race-target-grid span {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+@media (max-width: 800px) {
+  .race-target-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.race-target-status {
+  margin-top: 8px !important;
+  color: #40e0d0;
+  font-weight: 600;
+  opacity: 1 !important;
+}

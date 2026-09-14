@@ -285,3 +285,76 @@ def calculate_performance_trends(activities):
         )
 
     return trends
+
+def calculate_race_countdown(goal):
+    if not goal or not goal.get("race_date"):
+        return None
+
+    race_date = datetime.strptime(
+        goal["race_date"],
+        "%Y-%m-%d"
+    ).date()
+
+    today = date.today()
+
+    days_remaining = (
+        race_date - today
+    ).days
+
+    swim_target_pace = None
+    bike_target_speed = None
+    run_target_pace = None
+
+    if (
+        goal.get("swim_target_min")
+        and goal.get("swim_distance_km")
+    ):
+        swim_target_pace = round(
+            goal["swim_target_min"]
+            / (goal["swim_distance_km"] * 10),
+            2,
+        )
+
+    if (
+        goal.get("bike_target_min")
+        and goal.get("bike_distance_km")
+    ):
+        bike_target_speed = round(
+            goal["bike_distance_km"]
+            / (goal["bike_target_min"] / 60),
+            1,
+        )
+
+    if (
+        goal.get("run_target_min")
+        and goal.get("run_distance_km")
+    ):
+        run_target_pace = round(
+            goal["run_target_min"]
+            / goal["run_distance_km"],
+            2,
+        )
+
+    return {
+        "race_name": goal["race_name"],
+        "race_date": goal["race_date"],
+        "days_remaining": days_remaining,
+        "overall_target_min": goal.get(
+            "overall_target_min"
+        ),
+        "swim_target_min": goal.get(
+            "swim_target_min"
+        ),
+        "bike_target_min": goal.get(
+            "bike_target_min"
+        ),
+        "run_target_min": goal.get(
+            "run_target_min"
+        ),
+        "swim_target_pace_min_per_100m":
+            swim_target_pace,
+        "bike_target_speed_kmh":
+            bike_target_speed,
+        "run_target_pace_min_per_km":
+            run_target_pace,
+    }

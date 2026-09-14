@@ -15,6 +15,8 @@ import SettingsPage from "./components/SettingsPage";
 
 import {
   getActivities,
+  getPerformance,
+  getRaceProgress,
   getSummary,
   getTrainingLoad,
   syncStrava,
@@ -22,6 +24,8 @@ import {
 
 import type {
   Activity,
+  PerformanceSummary,
+  RaceProgress,
   TrainingSummary,
   WeeklyTrainingLoad,
 } from "./types";
@@ -31,12 +35,61 @@ type HealthResponse = {
   service: string;
 };
 
+function formatPace(value: number | null) {
+  if (value === null) {
+    return "—";
+  }
+
+  let minutes = Math.floor(value);
+  let seconds = Math.round(
+    (value - minutes) * 60
+  );
+
+  if (seconds === 60) {
+    minutes += 1;
+    seconds = 0;
+  }
+
+  return `${minutes}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
+}
+function getTargetStatus(
+  current: number | null | undefined,
+  target: number | null,
+  lowerIsBetter: boolean
+) {
+  if (current == null || target == null) {
+    return null;
+  }
+
+  const difference = lowerIsBetter
+    ? target - current
+    : current - target;
+
+  const percentageDifference =
+    Math.abs(difference / target) * 100;
+
+  if (percentageDifference <= 2) {
+    return "On target";
+  }
+
+  return difference > 0
+    ? "Ahead of target"
+    : "Behind target";
+}
 function App() {
   const [backendConnected, setBackendConnected] =
     useState(false);
 
   const [activePage, setActivePage] =
     useState("Dashboard");
+
+  const [raceProgress, setRaceProgress] =
+    useState<RaceProgress | null>(null);
+
+  const [performance, setPerformance] =
+    useState<PerformanceSummary | null>(null);
 
   const [summary, setSummary] =
     useState<TrainingSummary | null>(null);
@@ -48,8 +101,11 @@ function App() {
     useState<WeeklyTrainingLoad[]>([]);
 
   const [syncing, setSyncing] = useState(false);
-  const [syncMessage, setSyncMessage] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [syncMessage, setSyncMessage] =
+    useState("");
+
+  const [refreshKey, setRefreshKey] =
+    useState(0);
 
   useEffect(() => {
     async function checkBackendHealth() {
@@ -59,7 +115,9 @@ function App() {
         );
 
         if (!response.ok) {
-          throw new Error("Backend request failed");
+          throw new Error(
+            "Backend request failed"
+          );
         }
 
         const data: HealthResponse =
@@ -82,15 +140,21 @@ function App() {
         summaryData,
         activityData,
         trainingLoadData,
+        raceProgressData,
+        performanceData,
       ] = await Promise.all([
         getSummary(),
         getActivities(100),
         getTrainingLoad(),
+        getRaceProgress(),
+        getPerformance(),
       ]);
 
       setSummary(summaryData);
       setActivities(activityData);
       setTrainingLoad(trainingLoadData);
+      setRaceProgress(raceProgressData);
+      setPerformance(performanceData);
     } catch (error) {
       console.error(
         "Could not load dashboard data:",
@@ -111,14 +175,19 @@ function App() {
       const result = await syncStrava();
 
       await loadDashboardData();
+
       setRefreshKey(
-          (currentKey) => currentKey + 1
+        (currentKey) => currentKey + 1
       );
 
       if (result.added === 0) {
-        setSyncMessage("Strava is up to date");
+        setSyncMessage(
+          "Strava is up to date"
+        );
       } else if (result.added === 1) {
-        setSyncMessage("1 new activity added");
+        setSyncMessage(
+          "1 new activity added"
+        );
       } else {
         setSyncMessage(
           `${result.added} new activities added`
@@ -130,7 +199,9 @@ function App() {
         error
       );
 
-      setSyncMessage("Strava sync failed");
+      setSyncMessage(
+        "Strava sync failed"
+      );
     } finally {
       setSyncing(false);
     }
@@ -138,39 +209,43 @@ function App() {
 
   const today = new Date();
 
-const startOfWeek = new Date(today);
+  const startOfWeek =
+    new Date(today);
 
-const day =
-  today.getDay() === 0
-    ? 6
-    : today.getDay() - 1;
+  const day =
+    today.getDay() === 0
+      ? 6
+      : today.getDay() - 1;
 
-startOfWeek.setDate(
-  today.getDate() - day
-);
+  startOfWeek.setDate(
+    today.getDate() - day
+  );
 
-startOfWeek.setHours(0, 0, 0, 0);
+  startOfWeek.setHours(
+    0,
+    0,
+    0,
+    0
+  );
 
-const endOfWeek = new Date(startOfWeek);
+  const endOfWeek =
+    new Date(startOfWeek);
 
-endOfWeek.setDate(
-  startOfWeek.getDate() + 7
-);
+  endOfWeek.setDate(
+    startOfWeek.getDate() + 7
+  );
 
-const weeklyActivities = activities.filter(
-  (activity) => {
-    const activityDate = new Date(
-      `${activity.date}T12:00:00`
-    );
+  const weeklyActivities =
+    activities.filter((activity) => {
+      const activityDate = new Date(
+        `${activity.date}T12:00:00`
+      );
 
-    return (
-      activityDate >= startOfWeek &&
-      activityDate < endOfWeek
-    );
-  }
-);
-
-
+      return (
+        activityDate >= startOfWeek &&
+        activityDate < endOfWeek
+      );
+    });
 
   const totalDistance = summary
     ? summary.Run.distance_km +
@@ -181,8 +256,12 @@ const weeklyActivities = activities.filter(
   const totalMinutes =
     summary?.total_training_minutes ?? 0;
 
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  const hours = Math.floor(
+    totalMinutes / 60
+  );
+
+  const minutes =
+    totalMinutes % 60;
 
   const latestTrainingLoad =
     trainingLoad.length > 0
@@ -190,6 +269,29 @@ const weeklyActivities = activities.filter(
           trainingLoad.length - 1
         ].total_training_load
       : 0;
+
+  const swimStatus = getTargetStatus(
+      performance?.Swim
+        .average_pace_min_per_100m,
+      raceProgress
+        ?.swim_target_pace_min_per_100m ?? null,
+      true
+    );
+
+    const bikeStatus = getTargetStatus(
+      performance?.Bike.average_speed_kmh,
+      raceProgress
+        ?.bike_target_speed_kmh ?? null,
+      false
+    );
+
+    const runStatus = getTargetStatus(
+      performance?.Run
+        .average_pace_min_per_km,
+      raceProgress
+        ?.run_target_pace_min_per_km ?? null,
+      true
+    );
 
   return (
     <div className="dashboard">
@@ -207,7 +309,9 @@ const weeklyActivities = activities.filter(
                   TriTracker
                 </p>
 
-                <h1>Training Dashboard</h1>
+                <h1>
+                  Training Dashboard
+                </h1>
 
                 <p className="subtitle">
                   Connected training. Smarter
@@ -253,7 +357,9 @@ const weeklyActivities = activities.filter(
             <section className="metrics-grid">
               <MetricCard
                 title="Weekly Distance"
-                value={`${totalDistance.toFixed(1)} km`}
+                value={`${totalDistance.toFixed(
+                  1
+                )} km`}
                 subtitle="This week"
               />
 
@@ -272,22 +378,161 @@ const weeklyActivities = activities.filter(
               />
 
               <MetricCard
-                 title="Activities"
-                 value={weeklyActivities.length.toString()}
-                 subtitle="This week"
+                title="Activities"
+                value={weeklyActivities.length.toString()}
+                subtitle="This week"
               />
             </section>
+
+            {raceProgress && (
+              <section className="dashboard-panel race-progress-card">
+                <div className="panel-heading">
+                  <div>
+                    <p className="panel-label">
+                      NEXT RACE
+                    </p>
+
+                    <h2>
+                      {raceProgress.race_name}
+                    </h2>
+                  </div>
+
+                  <div className="race-countdown">
+                    <strong>
+                      {
+                        raceProgress.days_remaining
+                      }
+                    </strong>
+
+                    <span>
+                      days to go
+                    </span>
+                  </div>
+                </div>
+
+                <div className="race-target-grid">
+                  <div>
+                    <strong>
+                      {raceProgress.overall_target_min !==
+                      null
+                        ? `${Math.floor(
+                            raceProgress.overall_target_min /
+                              60
+                          )}h ${
+                            raceProgress.overall_target_min %
+                            60
+                          }m`
+                        : "—"}
+                    </strong>
+
+                    <span>
+                      Target finish
+                    </span>
+                  </div>
+
+                  <div>
+                    <strong>
+                      {formatPace(
+                        raceProgress.swim_target_pace_min_per_100m
+                      )}{" "}
+                      /100m
+                    </strong>
+
+                    <span>
+                      Swim target
+                    </span>
+
+                    <span>
+                      Current:{" "}
+                      {formatPace(
+                        performance?.Swim
+                          .average_pace_min_per_100m ??
+                          null
+                      )}{" "}
+                      /100m
+                    </span>
+                    {swimStatus && (
+                      <span className="race-target-status">
+                        {swimStatus}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <strong>
+                      {raceProgress.bike_target_speed_kmh !==
+                      null
+                        ? `${raceProgress.bike_target_speed_kmh.toFixed(
+                            1
+                          )} km/h`
+                        : "—"}
+                    </strong>
+
+                    <span>
+                      Bike target
+                    </span>
+
+                    <span>
+                      Current:{" "}
+                      {performance?.Bike
+                        .average_speed_kmh !==
+                        null &&
+                      performance?.Bike
+                        .average_speed_kmh !==
+                        undefined
+                        ? `${performance.Bike.average_speed_kmh.toFixed(
+                            1
+                          )} km/h`
+                        : "—"}
+                    </span>
+                    {bikeStatus && (
+                      <span className="race-target-status">
+                        {bikeStatus}
+                      </span>
+                    )}
+                  </div>
+
+                  <div>
+                    <strong>
+                      {formatPace(
+                        raceProgress.run_target_pace_min_per_km
+                      )}{" "}
+                      /km
+                    </strong>
+
+                    <span>
+                      Run target
+                    </span>
+
+                    <span>
+                      Current:{" "}
+                      {formatPace(
+                        performance?.Run
+                          .average_pace_min_per_km ??
+                          null
+                      )}{" "}
+                      /km
+                    </span>
+                    {runStatus && (
+                      <span className="race-target-status">
+                        {runStatus}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </section>
+            )}
 
             <section className="dashboard-grid">
               <div className="dashboard-panel chart-panel">
                 <TrainingLoadChart
-                    key={`training-${refreshKey}`}
+                  key={`training-${refreshKey}`}
                 />
               </div>
 
               <div className="dashboard-panel recovery-panel">
                 <RecoveryGauge
-                    key={`recovery-${refreshKey}`}
+                  key={`recovery-${refreshKey}`}
                 />
               </div>
             </section>
@@ -295,13 +540,13 @@ const weeklyActivities = activities.filter(
             <section className="dashboard-grid lower-grid">
               <div className="dashboard-panel">
                 <RecommendationCard
-                    key={`recommendation-${refreshKey}`}
+                  key={`recommendation-${refreshKey}`}
                 />
               </div>
 
               <div className="dashboard-panel">
                 <ActivityList
-                key={`activities-${refreshKey}`}
+                  key={`activities-${refreshKey}`}
                 />
               </div>
             </section>
@@ -325,7 +570,7 @@ const weeklyActivities = activities.filter(
         )}
 
         {activePage === "Settings" && (
-            <SettingsPage />
+          <SettingsPage />
         )}
       </main>
     </div>

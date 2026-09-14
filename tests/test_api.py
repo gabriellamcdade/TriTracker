@@ -511,3 +511,36 @@ def test_get_performance_trends(monkeypatch):
             "value": 2.0,
         }
     ]
+
+def test_get_race_progress(monkeypatch):
+    test_goal = {
+        "race_name": "Barcelona Olympic Triathlon",
+        "race_date": "2026-10-20",
+        "swim_distance_km": 1.5,
+        "bike_distance_km": 40.0,
+        "run_distance_km": 10.0,
+        "swim_target_min": 30,
+        "bike_target_min": 80,
+        "run_target_min": 55,
+        "overall_target_min": 175,
+    }
+
+    monkeypatch.setattr(
+        api,
+        "get_goal",
+        lambda: test_goal,
+    )
+
+    response = client.get("/race-progress")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["race_name"] == "Barcelona Olympic Triathlon"
+    assert data["race_date"] == "2026-10-20"
+    assert data["overall_target_min"] == 175
+    assert data["swim_target_min"] == 30
+    assert data["bike_target_min"] == 80
+    assert data["run_target_min"] == 55
+    assert isinstance(data["days_remaining"], int)

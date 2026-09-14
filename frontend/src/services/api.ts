@@ -10,6 +10,7 @@ import type {
   TrainingSummary,
   WeeklyTrainingLoad,
   PerformanceTrends,
+  RaceProgress,
 } from "../types";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -118,4 +119,7 @@ export async function saveHRProfile(
 }
 export function getPerformanceTrends(): Promise<PerformanceTrends> {
   return getJson<PerformanceTrends>("/performance/trends");
+}
+export function getRaceProgress(): Promise<RaceProgress | null> {
+  return getJson<RaceProgress | null>("/race-progress");
 }

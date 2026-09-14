@@ -132,3 +132,15 @@ export type PerformanceTrends = {
   Bike: PerformanceTrendPoint[];
   Swim: PerformanceTrendPoint[];
 };
+export type RaceProgress = {
+  race_name: string;
+  race_date: string;
+  days_remaining: number;
+  overall_target_min: number | null;
+  swim_target_min: number | null;
+  bike_target_min: number | null;
+  run_target_min: number | null;
+  swim_target_pace_min_per_100m: number | null;
+  bike_target_speed_kmh: number | null;
+  run_target_pace_min_per_km: number | null;
+};

@@ -9,6 +9,7 @@ from src.analytics import (
     get_current_week_activities,
     get_recent_activities,
     calculate_performance_trends,
+    calculate_race_countdown,
 )
 from src.database import (
     get_all_activities,
@@ -177,3 +178,11 @@ def get_goals():
 def update_goals(goal: GoalInput):
     save_goal(goal.model_dump())
     return get_goal()
+
+@app.get("/race-progress")
+def get_race_progress():
+    goal = get_goal()
+
+    return calculate_race_countdown(
+        goal
+    )
