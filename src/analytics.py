@@ -246,3 +246,42 @@ def calculate_performance_summary(activities):
             )
 
     return performance
+
+def calculate_performance_trends(activities):
+    trends = {
+        "Run": [],
+        "Bike": [],
+        "Swim": [],
+    }
+
+    for activity in activities:
+        sport = activity["sport"]
+        distance = activity["distance_km"]
+        duration = activity["duration_min"]
+
+        if sport not in trends:
+            continue
+
+        if distance <= 0 or duration <= 0:
+            continue
+
+        if sport == "Run":
+            value = duration / distance
+
+        elif sport == "Bike":
+            value = distance / (duration / 60)
+
+        else:
+            value = duration / (distance * 10)
+
+        trends[sport].append({
+            "date": activity["date"],
+            "value": round(value, 2),
+        })
+
+    for sport in trends:
+        trends[sport].sort(
+            key=lambda item: item["date"]
+        )
+
+    return trends

@@ -8,6 +8,7 @@ from src.analytics import (
     calculate_performance_summary,
     get_current_week_activities,
     get_recent_activities,
+    calculate_performance_trends,
 )
 from src.database import (
     get_all_activities,
@@ -109,6 +110,19 @@ def get_performance():
     )
 
     return calculate_performance_summary(
+        recent_activities
+    )
+
+@app.get("/performance/trends")
+def get_performance_trends():
+    activities = get_all_activities()
+
+    recent_activities = get_recent_activities(
+        activities,
+        days=30,
+    )
+
+    return calculate_performance_trends(
         recent_activities
     )
 

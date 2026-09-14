@@ -870,3 +870,34 @@ button {
     align-items: flex-start;
   }
 }
+.performance-trend-chart {
+  margin-top: 20px;
+}
+
+.performance-trend-svg {
+  width: 100%;
+  height: 180px;
+  color: #40e0d0;
+  overflow: visible;
+}
+
+.performance-trend-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.performance-trend-latest {
+  margin-top: 14px;
+  font-size: 0.95rem;
+}
+
+.performance-trend-latest strong {
+  color: #40e0d0;
+}
+
+.dashboard-panel + .dashboard-panel {
+  margin-top: 24px;
+}

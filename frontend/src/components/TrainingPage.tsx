@@ -2,16 +2,20 @@ import { useEffect, useState } from "react";
 
 import {
   getPerformance,
+  getPerformanceTrends,
   getSummary,
   getTrainingLoad,
 } from "../services/api";
 
 import type {
   PerformanceSummary,
+  PerformanceTrends,
   Sport,
   TrainingSummary,
   WeeklyTrainingLoad,
 } from "../types";
+
+import PerformanceTrendChart from "./PerformanceTrendChart";
 
 function formatPace(value: number | null) {
   if (value === null) {
@@ -35,6 +39,9 @@ function TrainingPage() {
   const [performance, setPerformance] =
     useState<PerformanceSummary | null>(null);
 
+  const [performanceTrends, setPerformanceTrends] =
+    useState<PerformanceTrends | null>(null);
+
   const [trainingLoad, setTrainingLoad] =
     useState<WeeklyTrainingLoad[]>([]);
 
@@ -46,15 +53,18 @@ function TrainingPage() {
         const [
           summaryData,
           performanceData,
+          trendData,
           loadData,
         ] = await Promise.all([
           getSummary(),
           getPerformance(),
+          getPerformanceTrends(),
           getTrainingLoad(),
         ]);
 
         setSummary(summaryData);
         setPerformance(performanceData);
+        setPerformanceTrends(trendData);
         setTrainingLoad(loadData);
       } catch (error) {
         console.error(
@@ -77,7 +87,11 @@ function TrainingPage() {
     );
   }
 
-  if (!summary || !performance) {
+  if (
+    !summary ||
+    !performance ||
+    !performanceTrends
+  ) {
     return (
       <p className="muted">
         Could not load training data.
@@ -217,17 +231,67 @@ function TrainingPage() {
                 >
                   {performanceData.average_hr ??
                     "—"}
+
                   {performanceData.average_hr !==
                     null && " bpm"}
                 </strong>
 
                 <span className="muted">
-                  30-day Average heart rate
+                  30-day average heart rate
                 </span>
               </div>
             </article>
           );
         })}
+      </section>
+
+      <section className="dashboard-panel">
+        <div className="panel-heading">
+          <div>
+            <p className="panel-label">
+              PERFORMANCE
+            </p>
+
+            <h2>
+              30-Day Performance Trends
+            </h2>
+          </div>
+        </div>
+
+        <div className="training-sport-grid">
+          <article className="training-sport-card">
+            <p className="panel-label">
+              RUN PACE
+            </p>
+
+            <PerformanceTrendChart
+              sport="Run"
+              data={performanceTrends.Run}
+            />
+          </article>
+
+          <article className="training-sport-card">
+            <p className="panel-label">
+              BIKE SPEED
+            </p>
+
+            <PerformanceTrendChart
+              sport="Bike"
+              data={performanceTrends.Bike}
+            />
+          </article>
+
+          <article className="training-sport-card">
+            <p className="panel-label">
+              SWIM PACE
+            </p>
+
+            <PerformanceTrendChart
+              sport="Swim"
+              data={performanceTrends.Swim}
+            />
+          </article>
+        </div>
       </section>
 
       <section className="dashboard-panel">
@@ -286,7 +350,9 @@ function TrainingPage() {
                       />
                     </div>
 
-                    <span>{week.week}</span>
+                    <span>
+                      {week.week}
+                    </span>
                   </div>
                 );
               })}

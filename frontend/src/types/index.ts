@@ -121,3 +121,14 @@ export type PerformanceSummary = {
     average_hr: number | null;
   };
 };
+
+export type PerformanceTrendPoint = {
+  date: string;
+  value: number;
+};
+
+export type PerformanceTrends = {
+  Run: PerformanceTrendPoint[];
+  Bike: PerformanceTrendPoint[];
+  Swim: PerformanceTrendPoint[];
+};

@@ -9,6 +9,7 @@ import type {
   StravaSyncResult,
   TrainingSummary,
   WeeklyTrainingLoad,
+  PerformanceTrends,
 } from "../types";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -114,4 +115,7 @@ export async function saveHRProfile(
   }
 
   return response.json() as Promise<HRProfile>;
+}
+export function getPerformanceTrends(): Promise<PerformanceTrends> {
+  return getJson<PerformanceTrends>("/performance/trends");
 }

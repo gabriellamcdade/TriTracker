@@ -436,3 +436,78 @@ def test_get_performance_handles_missing_heart_rate(monkeypatch):
 
     assert data["Run"]["average_pace_min_per_km"] == 6.0
     assert data["Run"]["average_hr"] is None
+
+def test_get_performance_trends(monkeypatch):
+    test_activities = [
+        {
+            "strava_id": 1,
+            "date": "2026-09-01",
+            "sport": "Run",
+            "distance_km": 5.0,
+            "duration_min": 30,
+            "avg_hr": 150,
+        },
+        {
+            "strava_id": 2,
+            "date": "2026-09-05",
+            "sport": "Run",
+            "distance_km": 10.0,
+            "duration_min": 55,
+            "avg_hr": 155,
+        },
+        {
+            "strava_id": 3,
+            "date": "2026-09-07",
+            "sport": "Bike",
+            "distance_km": 30.0,
+            "duration_min": 60,
+            "avg_hr": 140,
+        },
+        {
+            "strava_id": 4,
+            "date": "2026-09-09",
+            "sport": "Swim",
+            "distance_km": 2.0,
+            "duration_min": 40,
+            "avg_hr": 135,
+        },
+    ]
+
+    monkeypatch.setattr(
+        api,
+        "get_all_activities",
+        lambda: test_activities,
+    )
+
+    response = client.get(
+        "/performance/trends"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["Run"] == [
+        {
+            "date": "2026-09-01",
+            "value": 6.0,
+        },
+        {
+            "date": "2026-09-05",
+            "value": 5.5,
+        },
+    ]
+
+    assert data["Bike"] == [
+        {
+            "date": "2026-09-07",
+            "value": 30.0,
+        }
+    ]
+
+    assert data["Swim"] == [
+        {
+            "date": "2026-09-09",
+            "value": 2.0,
+        }
+    ]
