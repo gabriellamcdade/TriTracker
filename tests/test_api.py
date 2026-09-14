@@ -544,3 +544,87 @@ def test_get_race_progress(monkeypatch):
     assert data["bike_target_min"] == 80
     assert data["run_target_min"] == 55
     assert isinstance(data["days_remaining"], int)
+
+
+def test_recommendation_uses_saved_goal(
+    monkeypatch,
+):
+    test_activities = [
+        {
+            "strava_id": 1,
+            "date": "2026-09-08",
+            "sport": "Run",
+            "distance_km": 5.0,
+            "duration_min": 30,
+            "avg_hr": 145,
+        },
+        {
+            "strava_id": 2,
+            "date": "2026-09-09",
+            "sport": "Bike",
+            "distance_km": 20.0,
+            "duration_min": 60,
+            "avg_hr": 135,
+        },
+        {
+            "strava_id": 3,
+            "date": "2026-09-10",
+            "sport": "Swim",
+            "distance_km": 1.0,
+            "duration_min": 30,
+            "avg_hr": 130,
+        },
+    ]
+
+    test_goal = {
+        "race_name":
+            "Barcelona Olympic Triathlon",
+        "race_date": "2026-10-20",
+        "swim_distance_km": 1.5,
+        "bike_distance_km": 40.0,
+        "run_distance_km": 10.0,
+        "swim_target_min": 30,
+        "bike_target_min": 80,
+        "run_target_min": 55,
+        "overall_target_min": 175,
+    }
+
+    monkeypatch.setattr(
+        api,
+        "get_all_activities",
+        lambda: test_activities,
+    )
+
+    monkeypatch.setattr(
+        api,
+        "get_goal",
+        lambda: test_goal,
+    )
+
+    monkeypatch.setattr(
+        api,
+        "load_profile",
+        lambda _path: {
+            "race_distance": "Sprint",
+            "weekly_hours": 6,
+        },
+    )
+
+    monkeypatch.setattr(
+        api,
+        "calculate_recovery",
+        lambda _activities, _weeks: {
+            "score": 80,
+        },
+    )
+
+    response = client.get(
+        "/recommendation"
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["race_distance"] == "Olympic"
+    assert "Olympic" in data["reason"]

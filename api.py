@@ -150,19 +150,38 @@ def get_training_recommendation():
     weekly_data = build_weekly_data(activities)
     sorted_weeks = get_sorted_weeks(weekly_data)
 
-    recovery_data = calculate_recovery(
-        activities,
-        sorted_weeks,
+    profile = load_profile(
+        "data/user_profile.csv"
     )
 
-    profile = load_profile("data/user_profile.csv")
+    goal = get_goal()
 
-    recent_week, recent_sports = sorted_weeks[-1]
+    if not sorted_weeks:
+        recent_sports = {
+            "Run": {"duration": 0},
+            "Bike": {"duration": 0},
+            "Swim": {"duration": 0},
+        }
+
+        recovery_data = {
+            "score": 100,
+        }
+
+    else:
+        recovery_data = calculate_recovery(
+            activities,
+            sorted_weeks,
+        )
+
+        recent_week, recent_sports = (
+            sorted_weeks[-1]
+        )
 
     return get_recommendation(
         profile,
         recent_sports,
         recovery_data,
+        goal,
     )
 @app.post("/strava/sync")
 def sync_strava():
