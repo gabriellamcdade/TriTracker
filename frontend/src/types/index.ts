@@ -98,3 +98,26 @@ export type HRProfile = {
   max_hr: number;
   resting_hr: number;
 };
+
+export type PerformanceSummary = {
+  Run: {
+    distance_km: number;
+    duration_min: number;
+    average_pace_min_per_km: number | null;
+    average_hr: number | null;
+  };
+
+  Bike: {
+    distance_km: number;
+    duration_min: number;
+    average_speed_kmh: number | null;
+    average_hr: number | null;
+  };
+
+  Swim: {
+    distance_km: number;
+    duration_min: number;
+    average_pace_min_per_100m: number | null;
+    average_hr: number | null;
+  };
+};

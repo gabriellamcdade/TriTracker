@@ -5,7 +5,9 @@ from src.strava_sync import sync_strava_activities
 
 from src.analytics import (
     calculate_training_summary,
+    calculate_performance_summary,
     get_current_week_activities,
+    get_recent_activities,
 )
 from src.database import (
     get_all_activities,
@@ -97,6 +99,18 @@ def get_summary():
         current_week_activities
     )
 
+@app.get("/performance")
+def get_performance():
+    activities = get_all_activities()
+
+    recent_activities = get_recent_activities(
+        activities,
+        days=30,
+    )
+
+    return calculate_performance_summary(
+        recent_activities
+    )
 
 @app.get("/training-load")
 def get_training_load():

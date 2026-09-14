@@ -149,3 +149,100 @@ def calculate_training_summary(activities):
         summary["total_training_minutes"] += activity["duration_min"]
 
     return summary
+
+def get_recent_activities(activities, days=30):
+    today = date.today()
+    start_date = today - timedelta(days=days - 1)
+
+    recent_activities = []
+
+    for activity in activities:
+        activity_date = datetime.strptime(
+            activity["date"],
+            "%Y-%m-%d"
+        ).date()
+
+        if start_date <= activity_date <= today:
+            recent_activities.append(activity)
+
+    return recent_activities
+
+def calculate_performance_summary(activities):
+    performance = {
+        "Run": {
+            "distance_km": 0,
+            "duration_min": 0,
+            "average_pace_min_per_km": None,
+            "average_hr": None,
+        },
+        "Bike": {
+            "distance_km": 0,
+            "duration_min": 0,
+            "average_speed_kmh": None,
+            "average_hr": None,
+        },
+        "Swim": {
+            "distance_km": 0,
+            "duration_min": 0,
+            "average_pace_min_per_100m": None,
+            "average_hr": None,
+        },
+    }
+
+    heart_rates = {
+        "Run": [],
+        "Bike": [],
+        "Swim": [],
+    }
+
+    for activity in activities:
+        sport = activity["sport"]
+
+        if sport not in performance:
+            continue
+
+        distance = activity["distance_km"]
+        duration = activity["duration_min"]
+        heart_rate = activity["avg_hr"]
+
+        performance[sport]["distance_km"] += distance
+        performance[sport]["duration_min"] += duration
+
+        if heart_rate is not None:
+            heart_rates[sport].append(heart_rate)
+
+    run_distance = performance["Run"]["distance_km"]
+    run_duration = performance["Run"]["duration_min"]
+
+    if run_distance > 0:
+        performance["Run"]["average_pace_min_per_km"] = round(
+            run_duration / run_distance,
+            2,
+        )
+
+    bike_distance = performance["Bike"]["distance_km"]
+    bike_duration = performance["Bike"]["duration_min"]
+
+    if bike_duration > 0:
+        performance["Bike"]["average_speed_kmh"] = round(
+            bike_distance / (bike_duration / 60),
+            1,
+        )
+
+    swim_distance = performance["Swim"]["distance_km"]
+    swim_duration = performance["Swim"]["duration_min"]
+
+    if swim_distance > 0:
+        performance["Swim"]["average_pace_min_per_100m"] = round(
+            swim_duration / (swim_distance * 10),
+            2,
+        )
+
+    for sport in heart_rates:
+        if heart_rates[sport]:
+            performance[sport]["average_hr"] = round(
+                sum(heart_rates[sport])
+                / len(heart_rates[sport])
+            )
+
+    return performance

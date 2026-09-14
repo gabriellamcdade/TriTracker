@@ -3,6 +3,7 @@ import type {
   Goal,
   HealthResponse,
   HRProfile,
+  PerformanceSummary,
   Recommendation,
   Recovery,
   StravaSyncResult,
@@ -87,6 +88,9 @@ export async function syncStrava(): Promise<StravaSyncResult> {
 }
 export function getHRProfile(): Promise<HRProfile | null> {
   return getJson<HRProfile | null>("/hr-profile");
+}
+export function getPerformance(): Promise<PerformanceSummary> {
+  return getJson<PerformanceSummary>("/performance");
 }
 
 export async function saveHRProfile(

@@ -350,3 +350,89 @@ def test_update_hr_profile(monkeypatch):
         "max_hr": 195,
         "resting_hr": 55,
     }
+def test_get_performance_uses_test_activities(monkeypatch):
+    test_activities = [
+        {
+            "strava_id": 1,
+            "date": "2026-09-01",
+            "sport": "Run",
+            "distance_km": 10.0,
+            "duration_min": 60,
+            "avg_hr": 150,
+        },
+        {
+            "strava_id": 2,
+            "date": "2026-09-02",
+            "sport": "Bike",
+            "distance_km": 30.0,
+            "duration_min": 60,
+            "avg_hr": 140,
+        },
+        {
+            "strava_id": 3,
+            "date": "2026-09-03",
+            "sport": "Swim",
+            "distance_km": 2.0,
+            "duration_min": 40,
+            "avg_hr": 130,
+        },
+    ]
+
+    monkeypatch.setattr(
+        api,
+        "get_all_activities",
+        lambda: test_activities,
+    )
+
+    response = client.get("/performance")
+
+    assert response.status_code == 200
+
+    assert response.json() == {
+        "Run": {
+            "distance_km": 10.0,
+            "duration_min": 60,
+            "average_pace_min_per_km": 6.0,
+            "average_hr": 150,
+        },
+        "Bike": {
+            "distance_km": 30.0,
+            "duration_min": 60,
+            "average_speed_kmh": 30.0,
+            "average_hr": 140,
+        },
+        "Swim": {
+            "distance_km": 2.0,
+            "duration_min": 40,
+            "average_pace_min_per_100m": 2.0,
+            "average_hr": 130,
+        },
+    }
+
+
+def test_get_performance_handles_missing_heart_rate(monkeypatch):
+    test_activities = [
+        {
+            "strava_id": 1,
+            "date": "2026-09-01",
+            "sport": "Run",
+            "distance_km": 5.0,
+            "duration_min": 30,
+            "avg_hr": None,
+        },
+    ]
+
+    monkeypatch.setattr(
+        api,
+        "get_all_activities",
+        lambda: test_activities,
+    )
+
+    response = client.get("/performance")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["Run"]["average_pace_min_per_km"] == 6.0
+    assert data["Run"]["average_hr"] is None
