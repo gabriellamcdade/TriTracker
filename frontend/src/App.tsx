@@ -49,6 +49,7 @@ function App() {
 
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function checkBackendHealth() {
@@ -110,6 +111,9 @@ function App() {
       const result = await syncStrava();
 
       await loadDashboardData();
+      setRefreshKey(
+          (currentKey) => currentKey + 1
+      );
 
       if (result.added === 0) {
         setSyncMessage("Strava is up to date");
@@ -131,6 +135,42 @@ function App() {
       setSyncing(false);
     }
   }
+
+  const today = new Date();
+
+const startOfWeek = new Date(today);
+
+const day =
+  today.getDay() === 0
+    ? 6
+    : today.getDay() - 1;
+
+startOfWeek.setDate(
+  today.getDate() - day
+);
+
+startOfWeek.setHours(0, 0, 0, 0);
+
+const endOfWeek = new Date(startOfWeek);
+
+endOfWeek.setDate(
+  startOfWeek.getDate() + 7
+);
+
+const weeklyActivities = activities.filter(
+  (activity) => {
+    const activityDate = new Date(
+      `${activity.date}T12:00:00`
+    );
+
+    return (
+      activityDate >= startOfWeek &&
+      activityDate < endOfWeek
+    );
+  }
+);
+
+
 
   const totalDistance = summary
     ? summary.Run.distance_km +
@@ -232,29 +272,37 @@ function App() {
               />
 
               <MetricCard
-                title="Activities"
-                value={activities.length.toString()}
-                subtitle="Recent activities"
+                 title="Activities"
+                 value={weeklyActivities.length.toString()}
+                 subtitle="This week"
               />
             </section>
 
             <section className="dashboard-grid">
               <div className="dashboard-panel chart-panel">
-                <TrainingLoadChart />
+                <TrainingLoadChart
+                    key={`training-${refreshKey}`}
+                />
               </div>
 
               <div className="dashboard-panel recovery-panel">
-                <RecoveryGauge />
+                <RecoveryGauge
+                    key={`recovery-${refreshKey}`}
+                />
               </div>
             </section>
 
             <section className="dashboard-grid lower-grid">
               <div className="dashboard-panel">
-                <RecommendationCard />
+                <RecommendationCard
+                    key={`recommendation-${refreshKey}`}
+                />
               </div>
 
               <div className="dashboard-panel">
-                <ActivityList />
+                <ActivityList
+                key={`activities-${refreshKey}`}
+                />
               </div>
             </section>
           </>
