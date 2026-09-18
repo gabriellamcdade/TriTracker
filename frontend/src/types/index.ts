@@ -91,6 +91,8 @@ export type Goal = {
 export type StravaSyncResult = {
   downloaded: number;
   added: number;
+  updated: number;
+  deleted: number;
   already_stored: number;
   skipped: number;
 };
@@ -144,3 +146,15 @@ export type RaceProgress = {
   bike_target_speed_kmh: number | null;
   run_target_pace_min_per_km: number | null;
 };
+
+export type CalendarActivity = {
+  sport: Sport;
+  type: string | null;
+  distance: number;
+  duration: number;
+};
+
+export type TrainingCalendar = Record<
+  string,
+  CalendarActivity[]
+>;

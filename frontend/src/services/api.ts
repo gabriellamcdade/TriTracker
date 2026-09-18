@@ -11,6 +11,7 @@ import type {
   WeeklyTrainingLoad,
   PerformanceTrends,
   RaceProgress,
+  TrainingCalendar,
 } from "../types";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -122,4 +123,8 @@ export function getPerformanceTrends(): Promise<PerformanceTrends> {
 }
 export function getRaceProgress(): Promise<RaceProgress | null> {
   return getJson<RaceProgress | null>("/race-progress");
+}
+
+export function getTrainingCalendar(): Promise<TrainingCalendar> {
+  return getJson<TrainingCalendar>("/calendar");
 }

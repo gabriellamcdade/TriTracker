@@ -10,6 +10,7 @@ from src.analytics import (
     get_recent_activities,
     calculate_performance_trends,
     calculate_race_countdown,
+    build_training_calendar,
 )
 from src.database import (
     get_all_activities,
@@ -23,6 +24,7 @@ from src.training_load import (
     build_weekly_data,
     get_sorted_weeks,
 )
+
 from src.recovery import calculate_recovery
 from src.data_loader import load_profile
 from src.recommendation import get_recommendation
@@ -205,3 +207,8 @@ def get_race_progress():
     return calculate_race_countdown(
         goal
     )
+
+@app.get("/calendar")
+def get_calendar():
+    activities = get_all_activities()
+    return build_training_calendar(activities)

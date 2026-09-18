@@ -358,3 +358,18 @@ def calculate_race_countdown(goal):
         "run_target_pace_min_per_km":
             run_target_pace,
     }
+
+from collections import defaultdict
+
+def build_training_calendar(activities):
+    calendar = defaultdict(list)
+
+    for activity in activities:
+        calendar[activity["date"]].append({
+            "sport": activity["sport"],
+            "type": activity["activity_type"],
+            "distance": activity["distance_km"],
+            "duration": activity["duration_min"],
+        })
+
+    return dict(calendar)
