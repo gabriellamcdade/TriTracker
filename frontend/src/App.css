@@ -898,9 +898,7 @@ button {
   color: #40e0d0;
 }
 
-.dashboard-panel + .dashboard-panel {
-  margin-top: 24px;
-}
+
 .race-progress-card {
   margin-bottom: 24px;
 }
@@ -1415,4 +1413,289 @@ button {
 
 .goal-form-field-full {
   grid-column: 1 / -1;
+}
+
+/* ========================================
+   Responsive layout polish
+   ======================================== */
+
+/* Keep the app from becoming excessively
+   stretched on very large displays */
+.dashboard-main {
+  min-width: 0;
+}
+
+/* Cards sharing a grid row should match */
+.dashboard-grid,
+.lower-grid,
+.recovery-page-grid,
+.goal-grid,
+.training-sport-grid {
+  align-items: stretch;
+}
+
+.dashboard-grid > .dashboard-panel,
+.lower-grid > .dashboard-panel,
+.recovery-page-grid > .dashboard-panel,
+.goal-grid > .dashboard-panel,
+.training-sport-grid > * {
+  height: 100%;
+}
+
+
+/* ========================================
+   Dashboard
+   ======================================== */
+
+/* Equal-height cards in both dashboard rows */
+.dashboard-grid > .dashboard-panel {
+  min-height: 320px;
+}
+
+.lower-grid > .dashboard-panel {
+  min-height: 310px;
+}
+
+/* Stop the recovery gauge being squashed */
+.recovery-gauge {
+  width: 140px;
+  height: 140px;
+  min-width: 140px;
+  min-height: 140px;
+  flex: 0 0 140px;
+  aspect-ratio: 1 / 1;
+}
+
+/* Give the gauge/text enough room */
+.recovery-content {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Prevent dashboard bars becoming extremely wide */
+.training-chart {
+  justify-content: center;
+}
+
+.chart-column {
+  flex: 1 1 0;
+  min-width: 38px;
+  max-width: 110px;
+}
+
+.chart-track {
+  width: 100%;
+}
+
+
+/* ========================================
+   Training page
+   ======================================== */
+
+/* Keep the performance section readable
+   rather than stretching indefinitely */
+.performance-trend-svg {
+  display: block;
+  width: 100%;
+  height: 180px;
+  max-height: 180px;
+}
+
+/* Prevent weekly-load bars becoming giant blocks */
+.training-page-chart {
+  justify-content: center;
+}
+
+.training-page-column {
+  flex: 1 1 0;
+  min-width: 60px;
+  max-width: 180px;
+}
+
+
+/* ========================================
+   Recovery page
+   ======================================== */
+
+.recovery-page-grid {
+  align-items: stretch;
+}
+
+.recovery-page-grid > .dashboard-panel {
+  min-height: 390px;
+}
+
+/* Recovery-page gauge must always stay circular */
+.recovery-page-gauge {
+  width: 180px;
+  height: 180px;
+  min-width: 180px;
+  min-height: 180px;
+  aspect-ratio: 1 / 1;
+}
+
+
+/* ========================================
+   Goals
+   ======================================== */
+
+.goal-grid {
+  grid-auto-rows: 1fr;
+}
+
+.goal-grid > .goal-card {
+  height: 100%;
+  min-height: 170px;
+}
+
+
+/* ========================================
+   Settings / HR zones
+   ======================================== */
+
+/* All five zone cards use identical sizing */
+.goal-grid > .goal-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.goal-grid > .goal-card h2 {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+
+/* ========================================
+   Medium screens
+   ======================================== */
+
+@media (max-width: 1250px) {
+  .dashboard-grid {
+    grid-template-columns: 1.45fr 1fr;
+  }
+
+  .lower-grid {
+    grid-template-columns: 1fr 1.35fr;
+  }
+
+  .recovery-content {
+    gap: 20px;
+  }
+
+  .chart-column {
+    min-width: 30px;
+  }
+}
+
+
+/* ========================================
+   Half-window / tablet
+   ======================================== */
+
+@media (max-width: 1000px) {
+  .dashboard-grid,
+  .lower-grid,
+  .recovery-page-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-grid > .dashboard-panel,
+  .lower-grid > .dashboard-panel,
+  .recovery-page-grid > .dashboard-panel {
+    min-height: auto;
+  }
+
+  .recovery-content {
+    min-height: 210px;
+    height: auto;
+  }
+
+  .training-chart {
+    min-height: 190px;
+  }
+}
+
+
+/* ========================================
+   Mobile
+   ======================================== */
+
+@media (max-width: 600px) {
+  .recovery-content {
+    flex-direction: column;
+    height: auto;
+    padding-top: 24px;
+    padding-bottom: 12px;
+  }
+
+  .recovery-gauge {
+    width: 130px;
+    height: 130px;
+    min-width: 130px;
+    min-height: 130px;
+    flex-basis: 130px;
+  }
+
+  .recovery-page-gauge {
+    width: 150px;
+    height: 150px;
+    min-width: 150px;
+    min-height: 150px;
+  }
+
+  .chart-column {
+    min-width: 24px;
+  }
+
+  .training-page-column {
+    min-width: 38px;
+  }
+}
+
+/* ========================================
+   Final card alignment fixes
+   ======================================== */
+
+/* Grid gap controls spacing — cards should
+   never add their own vertical offset */
+.dashboard-grid > .dashboard-panel,
+.lower-grid > .dashboard-panel,
+.recovery-page-grid > .dashboard-panel,
+.goal-grid > .dashboard-panel,
+.training-sport-grid > .dashboard-panel {
+  margin-top: 0;
+}
+
+/* Make every card fill its grid cell */
+.dashboard-grid > *,
+.lower-grid > *,
+.recovery-page-grid > *,
+.goal-grid > *,
+.training-sport-grid > * {
+  height: 100%;
+}
+
+/* Goal and HR-zone cards */
+.goal-grid {
+  align-items: stretch;
+}
+
+.goal-card {
+  min-height: 190px;
+}
+
+/* Recovery cards */
+.recovery-page-grid {
+  align-items: stretch;
+}
+
+.recovery-page-grid > .dashboard-panel {
+  height: 100%;
+}
+
+/* Dashboard paired cards */
+.dashboard-grid,
+.lower-grid {
+  align-items: stretch;
 }

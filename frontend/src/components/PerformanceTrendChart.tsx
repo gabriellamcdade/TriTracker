@@ -89,7 +89,7 @@ function PerformanceTrendChart({
     <div className="performance-trend-chart">
       <svg
         viewBox="0 0 100 100"
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid meet"
         className="performance-trend-svg"
       >
         <polyline
