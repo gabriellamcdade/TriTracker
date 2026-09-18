@@ -223,3 +223,36 @@ def save_hr_profile(profile):
             profile["max_hr"],
             profile["resting_hr"],
         ))
+
+def update_activity(activity):
+    with get_connection() as connection:
+        connection.execute("""
+            UPDATE activities
+            SET
+                date = ?,
+                sport = ?,
+                activity_type = ?,
+                distance_km = ?,
+                duration_min = ?,
+                avg_hr = ?
+            WHERE strava_id = ?
+        """, (
+            activity["date"],
+            activity["sport"],
+            activity.get("activity_type"),
+            activity["distance_km"],
+            activity["duration_min"],
+            activity["avg_hr"],
+            activity["strava_id"],
+        ))
+
+
+def delete_activity(strava_id):
+    with get_connection() as connection:
+        connection.execute(
+            """
+            DELETE FROM activities
+            WHERE strava_id = ?
+            """,
+            (strava_id,),
+        )
