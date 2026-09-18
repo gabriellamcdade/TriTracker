@@ -11,7 +11,7 @@ from src.database import (
 )
 
 
-RECONCILIATION_DAYS = 7
+RECONCILIATION_DAYS = 30
 
 
 def sync_strava_activities(per_page=50):
@@ -98,7 +98,7 @@ def sync_strava_activities(per_page=50):
         else:
             already_stored += 1
 
-    # Only reconcile deletions from the last 7 days.
+    # Only reconcile deletions from the last 30 days.
     today = date.today()
 
     reconciliation_start = (
