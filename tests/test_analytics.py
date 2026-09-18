@@ -62,10 +62,12 @@ def test_build_training_calendar_groups_activities_by_date():
     assert len(calendar["2026-09-16"]) == 1
 
     assert calendar["2026-09-15"][0] == {
+        "strava_id": 101,
         "sport": "Run",
         "type": "Outdoor Run",
         "distance": 5.0,
         "duration": 30,
+        "avg_hr": 150,
     }
 
     assert calendar["2026-09-15"][1]["sport"] == "Bike"

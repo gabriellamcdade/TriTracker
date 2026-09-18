@@ -366,10 +366,12 @@ def build_training_calendar(activities):
 
     for activity in activities:
         calendar[activity["date"]].append({
+            "strava_id": activity["strava_id"],
             "sport": activity["sport"],
             "type": activity["activity_type"],
             "distance": activity["distance_km"],
             "duration": activity["duration_min"],
+            "avg_hr": activity["avg_hr"],
         })
 
     return dict(calendar)

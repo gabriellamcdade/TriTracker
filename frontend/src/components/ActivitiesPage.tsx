@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getActivities } from "../services/api";
 import type { Activity, Sport } from "../types";
 import TrainingCalendar from "./TrainingCalendar";
+import ActivityDetail from "./ActivityDetail";
 
 type Filter = "All" | Sport;
 
@@ -10,6 +11,8 @@ function ActivitiesPage() {
   const [filter, setFilter] = useState<Filter>("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedActivity, setSelectedActivity] =
+    useState<Activity | null>(null);
 
   useEffect(() => {
     async function loadActivities() {
@@ -30,8 +33,7 @@ function ActivitiesPage() {
     filter === "All"
       ? activities
       : activities.filter(
-          (activity) =>
-            activity.sport === filter
+          (activity) => activity.sport === filter
         );
 
   return (
@@ -51,7 +53,11 @@ function ActivitiesPage() {
         </div>
       </header>
 
-      <TrainingCalendar />
+      <TrainingCalendar
+        onActivityClick={(activity) =>
+            setSelectedActivity(activity)
+            }
+      />
 
       <section className="activities-history-section">
         <div className="activities-history-header">
@@ -104,8 +110,7 @@ function ActivitiesPage() {
 
           {!loading &&
             !error &&
-            filteredActivities.length ===
-              0 && (
+            filteredActivities.length === 0 && (
               <p className="muted">
                 No activities found.
               </p>
@@ -115,10 +120,26 @@ function ActivitiesPage() {
             {filteredActivities.map(
               (activity) => (
                 <article
-                  className="activities-page-row"
-                  key={
-                    activity.strava_id
+                  className="activities-page-row clickable-activity-row"
+                  key={activity.strava_id}
+                  onClick={() =>
+                    setSelectedActivity(
+                      activity
+                    )
                   }
+                  tabIndex={0}
+                  role="button"
+                  onKeyDown={(event) => {
+                    if (
+                      event.key ===
+                        "Enter" ||
+                      event.key === " "
+                    ) {
+                      setSelectedActivity(
+                        activity
+                      );
+                    }
+                  }}
                 >
                   <div className="activity-type-badge">
                     {activity.sport.charAt(
@@ -139,10 +160,7 @@ function ActivitiesPage() {
 
                   <div className="activities-page-metric">
                     <strong>
-                      {
-                        activity.distance_km
-                      }{" "}
-                      km
+                      {activity.distance_km} km
                     </strong>
 
                     <span>
@@ -152,10 +170,7 @@ function ActivitiesPage() {
 
                   <div className="activities-page-metric">
                     <strong>
-                      {
-                        activity.duration_min
-                      }{" "}
-                      min
+                      {activity.duration_min} min
                     </strong>
 
                     <span>
@@ -174,12 +189,23 @@ function ActivitiesPage() {
                       Avg HR
                     </span>
                   </div>
+
+
                 </article>
               )
             )}
           </div>
         </section>
       </section>
+
+      {selectedActivity && (
+        <ActivityDetail
+          activity={selectedActivity}
+          onClose={() =>
+            setSelectedActivity(null)
+          }
+        />
+      )}
     </div>
   );
 }

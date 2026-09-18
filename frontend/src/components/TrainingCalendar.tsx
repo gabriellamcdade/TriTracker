@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getTrainingCalendar } from "../services/api";
 import type {
+  Activity,
   CalendarActivity,
   TrainingCalendar as TrainingCalendarData,
 } from "../types";
@@ -14,6 +15,10 @@ const WEEKDAYS = [
   "Sat",
   "Sun",
 ];
+
+type TrainingCalendarProps = {
+  onActivityClick: (activity: Activity) => void;
+};
 
 function getDateKey(
   year: number,
@@ -63,7 +68,24 @@ function getSportLetter(
   return activity.sport.charAt(0);
 }
 
-function TrainingCalendar() {
+function toActivity(
+  activity: CalendarActivity,
+  date: string
+): Activity {
+  return {
+    strava_id: activity.strava_id,
+    date,
+    sport: activity.sport,
+    activity_type: activity.type,
+    distance_km: activity.distance,
+    duration_min: activity.duration,
+    avg_hr: activity.avg_hr,
+  };
+}
+
+function TrainingCalendar({
+  onActivityClick,
+}: TrainingCalendarProps) {
   const today = new Date();
 
   const [calendar, setCalendar] =
@@ -116,8 +138,6 @@ function TrainingCalendar() {
       0
     ).getDate();
 
-    // Convert Sunday=0 JS format into
-    // Monday=0 calendar format.
     const leadingBlankDays =
       (firstDay.getDay() + 6) % 7;
 
@@ -177,216 +197,229 @@ function TrainingCalendar() {
     setSelectedDate(null);
   }
 
-  if (loading) {
-    return (
-      <section className="dashboard-panel">
+  return (
+    <section className="dashboard-panel training-calendar-panel">
+      {loading ? (
         <p className="muted">
           Loading calendar...
         </p>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="dashboard-panel">
+      ) : error ? (
         <p className="muted">
           {error}
         </p>
-      </section>
-    );
-  }
+      ) : (
+        <>
+          <div className="training-calendar-header">
+            <div>
+              <p className="panel-label">
+                TRAINING HISTORY
+              </p>
 
-  return (
-    <section className="dashboard-panel training-calendar-panel">
-      <div className="training-calendar-header">
-        <div>
-          <p className="panel-label">
-            TRAINING HISTORY
-          </p>
+              <h2>
+                {formatMonth(
+                  displayYear,
+                  displayMonth
+                )}
+              </h2>
+            </div>
 
-          <h2>
-            {formatMonth(
-              displayYear,
-              displayMonth
-            )}
-          </h2>
-        </div>
-
-        <div className="calendar-navigation">
-          <button
-            type="button"
-            onClick={previousMonth}
-            aria-label="Previous month"
-          >
-            ‹
-          </button>
-
-          <button
-            type="button"
-            onClick={nextMonth}
-            aria-label="Next month"
-          >
-            ›
-          </button>
-        </div>
-      </div>
-
-      <div className="calendar-weekdays">
-        {WEEKDAYS.map((weekday) => (
-          <span key={weekday}>
-            {weekday}
-          </span>
-        ))}
-      </div>
-
-      <div className="training-calendar-grid">
-        {calendarDays.map(
-          (day, index) => {
-            if (day === null) {
-              return (
-                <div
-                  className="calendar-day empty"
-                  key={`empty-${index}`}
-                />
-              );
-            }
-
-            const dateKey = getDateKey(
-              displayYear,
-              displayMonth,
-              day
-            );
-
-            const activities =
-              calendar[dateKey] || [];
-
-            const isSelected =
-              selectedDate === dateKey;
-
-            const isToday =
-              dateKey ===
-              getDateKey(
-                today.getFullYear(),
-                today.getMonth(),
-                today.getDate()
-              );
-
-            return (
+            <div className="calendar-navigation">
               <button
                 type="button"
-                key={dateKey}
-                className={[
-                  "calendar-day",
-                  activities.length > 0
-                    ? "has-activity"
-                    : "",
-                  isSelected
-                    ? "selected"
-                    : "",
-                  isToday
-                    ? "today"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
-                onClick={() =>
-                  setSelectedDate(dateKey)
-                }
+                onClick={previousMonth}
+                aria-label="Previous month"
               >
-                <span className="calendar-day-number">
-                  {day}
-                </span>
+                ‹
+              </button>
 
-                <div className="calendar-activity-dots">
-                  {activities
-                    .slice(0, 3)
-                    .map(
-                      (
-                        activity,
-                        activityIndex
-                      ) => (
-                        <span
-                          className={`calendar-sport-dot ${activity.sport.toLowerCase()}`}
-                          key={`${activity.sport}-${activityIndex}`}
-                          title={
-                            activity.type ||
-                            activity.sport
-                          }
+              <button
+                type="button"
+                onClick={nextMonth}
+                aria-label="Next month"
+              >
+                ›
+              </button>
+            </div>
+          </div>
+
+          <div className="calendar-weekdays">
+            {WEEKDAYS.map((weekday) => (
+              <span key={weekday}>
+                {weekday}
+              </span>
+            ))}
+          </div>
+
+          <div className="training-calendar-grid">
+            {calendarDays.map(
+              (day, index) => {
+                if (day === null) {
+                  return (
+                    <div
+                      className="calendar-day empty"
+                      key={`empty-${index}`}
+                    />
+                  );
+                }
+
+                const dateKey = getDateKey(
+                  displayYear,
+                  displayMonth,
+                  day
+                );
+
+                const activities =
+                  calendar[dateKey] || [];
+
+                const isSelected =
+                  selectedDate === dateKey;
+
+                const isToday =
+                  dateKey ===
+                  getDateKey(
+                    today.getFullYear(),
+                    today.getMonth(),
+                    today.getDate()
+                  );
+
+                return (
+                  <button
+                    type="button"
+                    key={dateKey}
+                    className={[
+                      "calendar-day",
+                      activities.length > 0
+                        ? "has-activity"
+                        : "",
+                      isSelected
+                        ? "selected"
+                        : "",
+                      isToday
+                        ? "today"
+                        : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() =>
+                      setSelectedDate(
+                        dateKey
+                      )
+                    }
+                  >
+                    <span className="calendar-day-number">
+                      {day}
+                    </span>
+
+                    <div className="calendar-activity-dots">
+                      {activities
+                        .slice(0, 3)
+                        .map(
+                          (
+                            activity,
+                            activityIndex
+                          ) => (
+                            <span
+                              className={`calendar-sport-dot ${activity.sport.toLowerCase()}`}
+                              key={`${activity.strava_id}-${activityIndex}`}
+                              title={
+                                activity.type ||
+                                activity.sport
+                              }
+                            >
+                              {getSportLetter(
+                                activity
+                              )}
+                            </span>
+                          )
+                        )}
+
+                      {activities.length >
+                        3 && (
+                        <span className="calendar-more">
+                          +
+                          {activities.length -
+                            3}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              }
+            )}
+          </div>
+
+          {selectedDate && (
+            <div className="calendar-selected-day">
+              <div>
+                <p className="panel-label">
+                  SELECTED DAY
+                </p>
+
+                <h3>
+                  {formatSelectedDate(
+                    selectedDate
+                  )}
+                </h3>
+              </div>
+
+              {selectedActivities.length ===
+              0 ? (
+                <p className="muted">
+                  No training recorded.
+                </p>
+              ) : (
+                <div className="calendar-selected-activities">
+                  {selectedActivities.map(
+                    (activity) => (
+                      <button
+                        type="button"
+                        className="calendar-selected-activity clickable-calendar-activity"
+                        key={
+                          activity.strava_id
+                        }
+                        onClick={() =>
+                          onActivityClick(
+                            toActivity(
+                              activity,
+                              selectedDate
+                            )
+                          )
+                        }
+                      >
+                        <div
+                          className={`activity-detail-sport-badge ${activity.sport.toLowerCase()}`}
                         >
                           {getSportLetter(
                             activity
                           )}
-                        </span>
-                      )
-                    )}
+                        </div>
 
-                  {activities.length > 3 && (
-                    <span className="calendar-more">
-                      +{activities.length - 3}
-                    </span>
+                        <div>
+                          <strong>
+                            {activity.type ||
+                              activity.sport}
+                          </strong>
+
+                          <span>
+                            {
+                              activity.distance
+                            }{" "}
+                            km
+                            {" · "}
+                            {
+                              activity.duration
+                            }{" "}
+                            min
+                          </span>
+                        </div>
+                      </button>
+                    )
                   )}
                 </div>
-              </button>
-            );
-          }
-        )}
-      </div>
-
-      {selectedDate && (
-        <div className="calendar-selected-day">
-          <div>
-            <p className="panel-label">
-              SELECTED DAY
-            </p>
-
-            <h3>
-              {formatSelectedDate(
-                selectedDate
-              )}
-            </h3>
-          </div>
-
-          {selectedActivities.length ===
-          0 ? (
-            <p className="muted">
-              No training recorded.
-            </p>
-          ) : (
-            <div className="calendar-selected-activities">
-              {selectedActivities.map(
-                (
-                  activity,
-                  index
-                ) => (
-                  <article
-                    className="calendar-selected-activity"
-                    key={`${activity.sport}-${index}`}
-                  >
-                    <div className="activity-type-badge">
-                      {getSportLetter(
-                        activity
-                      )}
-                    </div>
-
-                    <div>
-                      <strong>
-                        {activity.type ||
-                          activity.sport}
-                      </strong>
-
-                      <span>
-                        {activity.distance} km
-                        {" · "}
-                        {activity.duration} min
-                      </span>
-                    </div>
-                  </article>
-                )
               )}
             </div>
           )}
-        </div>
+        </>
       )}
     </section>
   );

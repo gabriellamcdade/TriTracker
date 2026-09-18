@@ -148,10 +148,12 @@ export type RaceProgress = {
 };
 
 export type CalendarActivity = {
+  strava_id: number;
   sport: Sport;
   type: string | null;
   distance: number;
   duration: number;
+  avg_hr: number | null;
 };
 
 export type TrainingCalendar = Record<
