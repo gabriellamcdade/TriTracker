@@ -1378,3 +1378,41 @@ button {
     0 8px 24px rgba(0, 0, 0, 0.16),
     0 0 18px rgba(64, 224, 208, 0.04);
 }
+
+.goal-calculated-target {
+  margin-top: 22px;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(64, 224, 208, 0.05);
+}
+
+.goal-calculated-target > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.goal-calculated-target span {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.goal-calculated-target strong {
+  font-size: 1.2rem;
+}
+
+.goal-calculated-target p {
+  margin: 7px 0 0;
+}
+
+.race-target small {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.68rem;
+  opacity: 0.5;
+}
+
+.goal-form-field-full {
+  grid-column: 1 / -1;
+}

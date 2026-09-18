@@ -86,6 +86,7 @@ export type Goal = {
   bike_target_min: number | null;
   run_target_min: number | null;
   overall_target_min: number | null;
+  weekly_target_hours: number;
 };
 
 export type StravaSyncResult = {

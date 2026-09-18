@@ -105,12 +105,31 @@ def initialise_goals_table():
                 swim_target_min INTEGER,
                 bike_target_min INTEGER,
                 run_target_min INTEGER,
-                overall_target_min INTEGER
+                overall_target_min INTEGER,
+                weekly_target_hours REAL NOT NULL DEFAULT 7
             )
         """)
 
+        cursor = connection.execute(
+            "PRAGMA table_info(goals)"
+        )
+
+        columns = [
+            row[1]
+            for row in cursor.fetchall()
+        ]
+
+        if "weekly_target_hours" not in columns:
+            connection.execute("""
+                ALTER TABLE goals
+                ADD COLUMN weekly_target_hours
+                REAL NOT NULL DEFAULT 7
+            """)
+
 
 def get_goal():
+    initialise_goals_table()
+
     with get_connection() as connection:
         connection.row_factory = sqlite3.Row
 
@@ -124,7 +143,8 @@ def get_goal():
                 swim_target_min,
                 bike_target_min,
                 run_target_min,
-                overall_target_min
+                overall_target_min,
+                weekly_target_hours
             FROM goals
             WHERE id = 1
         """)
@@ -135,6 +155,8 @@ def get_goal():
 
 
 def save_goal(goal):
+    initialise_goals_table()
+
     with get_connection() as connection:
         connection.execute("""
             INSERT INTO goals (
@@ -147,9 +169,12 @@ def save_goal(goal):
                 swim_target_min,
                 bike_target_min,
                 run_target_min,
-                overall_target_min
+                overall_target_min,
+                weekly_target_hours
             )
-            VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (
+                1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+            )
 
             ON CONFLICT(id) DO UPDATE SET
                 race_name = excluded.race_name,
@@ -160,7 +185,8 @@ def save_goal(goal):
                 swim_target_min = excluded.swim_target_min,
                 bike_target_min = excluded.bike_target_min,
                 run_target_min = excluded.run_target_min,
-                overall_target_min = excluded.overall_target_min
+                overall_target_min = excluded.overall_target_min,
+                weekly_target_hours = excluded.weekly_target_hours
         """, (
             goal["race_name"],
             goal.get("race_date"),
@@ -171,6 +197,7 @@ def save_goal(goal):
             goal.get("bike_target_min"),
             goal.get("run_target_min"),
             goal.get("overall_target_min"),
+            goal["weekly_target_hours"],
         ))
 
 

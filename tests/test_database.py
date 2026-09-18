@@ -94,7 +94,8 @@ def test_save_and_get_goal(monkeypatch, tmp_path):
         "swim_target_min": 30,
         "bike_target_min": 80,
         "run_target_min": 55,
-        "overall_target_min": 175,
+        "overall_target_min": 165,
+        "weekly_target_hours": 7,
     }
 
     save_goal(goal)
@@ -107,7 +108,8 @@ def test_save_and_get_goal(monkeypatch, tmp_path):
     assert saved_goal["swim_distance_km"] == 1.5
     assert saved_goal["bike_distance_km"] == 40
     assert saved_goal["run_distance_km"] == 10
-    assert saved_goal["overall_target_min"] == 175
+    assert saved_goal["overall_target_min"] == 165
+    assert saved_goal["weekly_target_hours"] == 7
 
 def test_save_goal_updates_existing_goal(
     monkeypatch,
@@ -137,13 +139,14 @@ def test_save_goal_updates_existing_goal(
         "swim_target_min": 30,
         "bike_target_min": 80,
         "run_target_min": 55,
-        "overall_target_min": 180,
+        "overall_target_min": 165,
+        "weekly_target_hours": 7,
     }
 
     updated_goal = {
         **first_goal,
         "race_name": "Updated Race",
-        "overall_target_min": 170,
+        "weekly_target_hours": 8,
     }
 
     save_goal(first_goal)
@@ -153,4 +156,5 @@ def test_save_goal_updates_existing_goal(
 
     assert saved_goal is not None
     assert saved_goal["race_name"] == "Updated Race"
-    assert saved_goal["overall_target_min"] == 170
+    assert saved_goal["overall_target_min"] == 165
+    assert saved_goal["weekly_target_hours"] == 8

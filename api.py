@@ -59,7 +59,7 @@ class GoalInput(BaseModel):
     swim_target_min: int | None = Field(default=None, gt=0)
     bike_target_min: int | None = Field(default=None, gt=0)
     run_target_min: int | None = Field(default=None, gt=0)
-    overall_target_min: int | None = Field(default=None, gt=0)
+    weekly_target_hours: float = Field(gt=0, le=30)
 
 class HRProfileInput(BaseModel):
     max_hr: int = Field(gt=0, le=250)
@@ -197,7 +197,26 @@ def get_goals():
 
 @app.put("/goals")
 def update_goals(goal: GoalInput):
-    save_goal(goal.model_dump())
+    goal_data = goal.model_dump()
+
+    discipline_targets = [
+        goal.swim_target_min,
+        goal.bike_target_min,
+        goal.run_target_min,
+    ]
+
+    if all(
+        target is not None
+        for target in discipline_targets
+    ):
+        goal_data["overall_target_min"] = sum(
+            discipline_targets
+        )
+    else:
+        goal_data["overall_target_min"] = None
+
+    save_goal(goal_data)
+
     return get_goal()
 
 @app.get("/race-progress")

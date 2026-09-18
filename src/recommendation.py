@@ -250,8 +250,21 @@ def get_recommendation(
             "race_distance"
         ]
 
+    if (
+            goal
+            and goal.get("weekly_target_hours")
+            is not None
+    ):
+        weekly_target_hours = goal[
+            "weekly_target_hours"
+        ]
+    else:
+        weekly_target_hours = profile[
+            "weekly_hours"
+        ]
+
     weekly_target_minutes = (
-        profile["weekly_hours"] * 60
+            weekly_target_hours * 60
     )
 
     recent_sport_minutes = {
