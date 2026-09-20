@@ -395,3 +395,38 @@ def get_activities(page=1, per_page=10):
             "per_page": per_page,
         },
     )
+
+def get_activities_since(
+    after_timestamp,
+    per_page=100,
+):
+    if not 1 <= per_page <= 200:
+        raise ValueError(
+            "per_page must be between 1 and 200."
+        )
+
+    activities = []
+    page = 1
+
+    while True:
+        page_activities = authenticated_get(
+            "https://www.strava.com/api/v3/"
+            "athlete/activities",
+            params={
+                "page": page,
+                "per_page": per_page,
+                "after": after_timestamp,
+            },
+        )
+
+        if not page_activities:
+            break
+
+        activities.extend(page_activities)
+
+        if len(page_activities) < per_page:
+            break
+
+        page += 1
+
+    return activities

@@ -1,6 +1,13 @@
-from datetime import date, datetime, timedelta
+from datetime import (
+    date,
+    datetime,
+    time,
+    timedelta,
+)
 
-from src.strava_api import get_activities
+from src.strava_api import (
+    get_activities_since,
+)
 from src.strava_data import transform_activity
 from src.database import (
     initialise_database,
@@ -14,13 +21,38 @@ from src.database import (
 RECONCILIATION_DAYS = 30
 
 
-def sync_strava_activities(per_page=50):
+def sync_strava_activities(
+    per_page=100,
+):
     initialise_database()
 
-    strava_activities = get_activities(
-        page=1,
-        per_page=per_page,
+    today = date.today()
+
+    reconciliation_start = (
+        today
+        - timedelta(
+            days=RECONCILIATION_DAYS - 1
+        )
     )
+
+    reconciliation_datetime = (
+        datetime.combine(
+            reconciliation_start,
+            time.min,
+        )
+    )
+
+    after_timestamp = int(
+        reconciliation_datetime.timestamp()
+    )
+
+    strava_activities = (
+        get_activities_since(
+            after_timestamp,
+            per_page=per_page,
+        )
+    )
+
     if not strava_activities:
         return {
             "downloaded": 0,
@@ -64,7 +96,6 @@ def sync_strava_activities(per_page=50):
     already_stored = 0
     deleted = 0
 
-    # Add new activities and update changed ones.
     for activity in transformed_activities:
         strava_id = activity["strava_id"]
 
@@ -97,16 +128,6 @@ def sync_strava_activities(per_page=50):
             updated += 1
         else:
             already_stored += 1
-
-    # Only reconcile deletions from the last 30 days.
-    today = date.today()
-
-    reconciliation_start = (
-        today
-        - timedelta(
-            days=RECONCILIATION_DAYS - 1
-        )
-    )
 
     for local_activity in local_activities:
         local_date = datetime.strptime(

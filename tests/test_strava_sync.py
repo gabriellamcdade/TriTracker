@@ -69,8 +69,9 @@ def test_sync_deletes_missing_recent_activity(
 
     monkeypatch.setattr(
         strava_sync,
-        "get_activities",
-        lambda page, per_page: strava_data,
+        "get_activities_since",
+        lambda after_timestamp, per_page:
+        strava_data,
     )
 
     monkeypatch.setattr(
@@ -142,8 +143,9 @@ def test_sync_does_not_delete_activity_outside_fetched_window(
 
     monkeypatch.setattr(
         strava_sync,
-        "get_activities",
-        lambda page, per_page: strava_data,
+        "get_activities_since",
+        lambda after_timestamp, per_page:
+        strava_data,
     )
 
     monkeypatch.setattr(
@@ -212,8 +214,9 @@ def test_sync_updates_changed_activity(
 
     monkeypatch.setattr(
         strava_sync,
-        "get_activities",
-        lambda page, per_page: strava_data,
+        "get_activities_since",
+        lambda after_timestamp, per_page:
+        strava_data,
     )
 
     monkeypatch.setattr(
@@ -251,3 +254,59 @@ def test_sync_updates_changed_activity(
     assert result["updated"] == 1
     assert result["added"] == 0
     assert result["deleted"] == 0
+
+def test_get_activities_since_fetches_multiple_pages(
+    monkeypatch,
+):
+    from src import strava_api
+
+    calls = []
+
+    first_page = [
+        {"id": activity_id}
+        for activity_id in range(100)
+    ]
+
+    second_page = [
+        {"id": 100},
+        {"id": 101},
+    ]
+
+    def fake_authenticated_get(url, params=None):
+        calls.append(params)
+
+        if params["page"] == 1:
+            return first_page
+
+        if params["page"] == 2:
+            return second_page
+
+        return []
+
+    monkeypatch.setattr(
+        strava_api,
+        "authenticated_get",
+        fake_authenticated_get,
+    )
+
+    activities = (
+        strava_api.get_activities_since(
+            after_timestamp=1234567890,
+            per_page=100,
+        )
+    )
+
+    assert len(activities) == 102
+
+    assert calls == [
+        {
+            "page": 1,
+            "per_page": 100,
+            "after": 1234567890,
+        },
+        {
+            "page": 2,
+            "per_page": 100,
+            "after": 1234567890,
+        },
+    ]
