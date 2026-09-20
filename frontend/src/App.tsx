@@ -107,6 +107,9 @@ function App() {
   const [refreshKey, setRefreshKey] =
     useState(0);
 
+  const [dashboardError, setDashboardError] =
+    useState("");
+
   useEffect(() => {
     async function checkBackendHealth() {
       try {
@@ -136,6 +139,7 @@ function App() {
 
   async function loadDashboardData() {
     try {
+      setDashboardError("");
       const [
         summaryData,
         activityData,
@@ -160,6 +164,10 @@ function App() {
         "Could not load dashboard data:",
         error
       );
+
+      setDashboardError(
+        "Could not load training data. Check that the backend is running."
+      );
     }
   }
 
@@ -180,19 +188,35 @@ function App() {
         (currentKey) => currentKey + 1
       );
 
-      if (result.added === 0) {
-        setSyncMessage(
-          "Strava is up to date"
-        );
-      } else if (result.added === 1) {
-        setSyncMessage(
-          "1 new activity added"
-        );
-      } else {
-        setSyncMessage(
-          `${result.added} new activities added`
-        );
-      }
+     const changes = [];
+
+    if (result.added > 0) {
+      changes.push(
+        `${result.added} added`
+      );
+    }
+
+    if (result.updated > 0) {
+      changes.push(
+        `${result.updated} updated`
+      );
+    }
+
+    if (result.deleted > 0) {
+      changes.push(
+        `${result.deleted} deleted`
+      );
+    }
+
+    if (changes.length === 0) {
+      setSyncMessage(
+        "✓ Strava is up to date"
+      );
+    } else {
+      setSyncMessage(
+        `✓ Strava synced · ${changes.join(" · ")}`
+      );
+    }
     } catch (error) {
       console.error(
         "Could not sync Strava:",
@@ -353,6 +377,12 @@ function App() {
                 </div>
               </div>
             </header>
+            {dashboardError && (
+              <div className="dashboard-error">
+                <span>!</span>
+                {dashboardError}
+              </div>
+            )}
 
             <section className="metrics-grid">
               <MetricCard

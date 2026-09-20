@@ -1699,3 +1699,25 @@ button {
 .lower-grid {
   align-items: stretch;
 }
+.dashboard-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 120, 120, 0.25);
+  border-radius: 12px;
+  background: rgba(255, 120, 120, 0.06);
+  font-size: 0.9rem;
+}
+
+.dashboard-error span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 50%;
+  font-weight: 700;
+}
