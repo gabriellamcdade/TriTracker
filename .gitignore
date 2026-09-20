@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 data/strava_tokens.json
 *.db
+frontend/.env

@@ -13,6 +13,7 @@ from src.analytics import (
     build_training_calendar,
 )
 from src.database import (
+    initialise_database,
     get_all_activities,
     get_goal,
     save_goal,
@@ -35,6 +36,7 @@ app = FastAPI(
     description="API for TriTracker training data and analysis",
     version="1.0.0",
 )
+initialise_database()
 
 
 app.add_middleware(
@@ -142,7 +144,26 @@ def get_recovery():
     weekly_data = build_weekly_data(activities)
     sorted_weeks = get_sorted_weeks(weekly_data)
 
-    return calculate_recovery(activities, sorted_weeks)
+    if len(sorted_weeks) < 2:
+        return {
+            "score": 100,
+            "status": "GOOD",
+            "recommendation": "MODERATE",
+            "recent_week": (
+                sorted_weeks[-1][0]
+                if sorted_weeks
+                else "No training data"
+            ),
+            "recent_load": 0,
+            "previous_load": 0,
+            "load_change": 0,
+            "high_intensity_percent": 0,
+        }
+
+    return calculate_recovery(
+        activities,
+        sorted_weeks,
+    )
 
 
 @app.get("/recommendation")
