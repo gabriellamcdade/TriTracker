@@ -114,7 +114,9 @@ function App() {
     async function checkBackendHealth() {
       try {
         const response = await fetch(
-          "http://127.0.0.1:8000/health"
+          import.meta.env.PROD
+            ? "https://tritracker.onrender.com/health"
+            : "http://127.0.0.1:8000/health"
         );
 
         if (!response.ok) {
