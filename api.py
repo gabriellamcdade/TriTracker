@@ -43,6 +43,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "https://tritracker-app.onrender.com",
     ],
     allow_credentials=False,
     allow_methods=["GET", "PUT", "POST"],
