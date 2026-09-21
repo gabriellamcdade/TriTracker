@@ -20,6 +20,8 @@ from src.database import (
     get_hr_profile,
     save_hr_profile,
 )
+from src.demo_data import seed_demo_data
+
 from src.training_load import (
     get_weekly_training_load,
     build_weekly_data,
@@ -37,7 +39,10 @@ app = FastAPI(
     version="1.0.0",
 )
 initialise_database()
+import os
 
+if os.getenv("RENDER"):
+    seed_demo_data()
 
 app.add_middleware(
     CORSMiddleware,
