@@ -99,6 +99,7 @@ function TrainingPage() {
     );
   }
 
+  const safePerformance = performance;
   const sports: Sport[] = [
     "Run",
     "Bike",
@@ -118,7 +119,7 @@ function TrainingPage() {
     if (sport === "Run") {
       return {
         value: formatPace(
-          performance.Run
+          safePerformance.Run
             .average_pace_min_per_km
         ),
         label: "30-day average pace / km",
@@ -128,10 +129,10 @@ function TrainingPage() {
     if (sport === "Bike") {
       return {
         value:
-          performance.Bike
+          safePerformance.Bike
             .average_speed_kmh === null
             ? "—"
-            : `${performance.Bike.average_speed_kmh.toFixed(
+            : `${safePerformance.Bike.average_speed_kmh.toFixed(
                 1
               )} km/h`,
         label: "30-day average speed",
@@ -140,7 +141,7 @@ function TrainingPage() {
 
     return {
       value: formatPace(
-        performance.Swim
+        safePerformance.Swim
           .average_pace_min_per_100m
       ),
       label: "30-day average pace / 100m",

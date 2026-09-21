@@ -41,7 +41,7 @@ function calculateOverallTarget(
     return null;
   }
 
-  return targets.reduce(
+  return targets.reduce<number>(
     (total, target) =>
       total + (target ?? 0),
     0
