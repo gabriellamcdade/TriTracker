@@ -1817,3 +1817,27 @@ button {
     font-size: 0.82rem;
   }
 }
+/* ========================================
+   Demo mode
+   ======================================== */
+
+.demo-mode-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid rgba(64, 224, 208, 0.25);
+  border-radius: 999px;
+  background: rgba(64, 224, 208, 0.08);
+  color: #40e0d0;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.demo-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #40e0d0;
+  box-shadow: 0 0 8px rgba(64, 224, 208, 0.7);
+}

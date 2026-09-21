@@ -347,22 +347,31 @@ function App() {
 
               <div className="dashboard-actions">
                 <div className="sync-area">
-                  <button
-                    className="strava-sync-button"
-                    onClick={handleStravaSync}
-                    disabled={syncing}
-                  >
-                    {syncing
-                      ? "Syncing..."
-                      : "↻ Sync Strava"}
-                  </button>
+                      {import.meta.env.PROD ? (
+                        <div className="demo-mode-badge">
+                          <span className="demo-mode-dot" />
+                          Demo Mode
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            className="strava-sync-button"
+                            onClick={handleStravaSync}
+                            disabled={syncing}
+                          >
+                            {syncing
+                              ? "Syncing..."
+                              : "↻ Sync Strava"}
+                          </button>
 
-                  {syncMessage && (
-                    <span className="sync-message">
-                      {syncMessage}
-                    </span>
-                  )}
-                </div>
+                          {syncMessage && (
+                            <span className="sync-message">
+                              {syncMessage}
+                            </span>
+                          )}
+                        </>
+                      )}
+                  </div>
 
                 <div className="backend-status">
                   <span
