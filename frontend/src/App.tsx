@@ -15,6 +15,7 @@ import SettingsPage from "./components/SettingsPage";
 
 import {
   getActivities,
+  getHealth,
   getPerformance,
   getRaceProgress,
   getSummary,
@@ -29,11 +30,6 @@ import type {
   TrainingSummary,
   WeeklyTrainingLoad,
 } from "./types";
-
-type HealthResponse = {
-  status: string;
-  service: string;
-};
 
 function formatPace(value: number | null) {
   if (value === null) {
@@ -54,6 +50,7 @@ function formatPace(value: number | null) {
     .toString()
     .padStart(2, "0")}`;
 }
+
 function getTargetStatus(
   current: number | null | undefined,
   target: number | null,
@@ -78,6 +75,7 @@ function getTargetStatus(
     ? "Ahead of target"
     : "Behind target";
 }
+
 function App() {
   const [backendConnected, setBackendConnected] =
     useState(false);
@@ -100,7 +98,9 @@ function App() {
   const [trainingLoad, setTrainingLoad] =
     useState<WeeklyTrainingLoad[]>([]);
 
-  const [syncing, setSyncing] = useState(false);
+  const [syncing, setSyncing] =
+    useState(false);
+
   const [syncMessage, setSyncMessage] =
     useState("");
 
@@ -110,38 +110,10 @@ function App() {
   const [dashboardError, setDashboardError] =
     useState("");
 
-  useEffect(() => {
-    async function checkBackendHealth() {
-      try {
-        const response = await fetch(
-          import.meta.env.PROD
-            ? "https://tritracker.onrender.com/health"
-            : "http://127.0.0.1:8000/health"
-        );
-
-        if (!response.ok) {
-          throw new Error(
-            "Backend request failed"
-          );
-        }
-
-        const data: HealthResponse =
-          await response.json();
-
-        setBackendConnected(
-          data.status === "ok"
-        );
-      } catch {
-        setBackendConnected(false);
-      }
-    }
-
-    checkBackendHealth();
-  }, []);
-
   async function loadDashboardData() {
     try {
       setDashboardError("");
+
       const [
         summaryData,
         activityData,
@@ -174,7 +146,29 @@ function App() {
   }
 
   useEffect(() => {
-    loadDashboardData();
+    async function checkBackendHealth() {
+      try {
+        const data = await getHealth();
+
+        setBackendConnected(
+          data.status === "ok"
+        );
+      } catch {
+        setBackendConnected(false);
+      }
+    }
+
+    void checkBackendHealth();
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadDashboardData();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, []);
 
   async function handleStravaSync() {
@@ -190,35 +184,37 @@ function App() {
         (currentKey) => currentKey + 1
       );
 
-     const changes = [];
+      const changes = [];
 
-    if (result.added > 0) {
-      changes.push(
-        `${result.added} added`
-      );
-    }
+      if (result.added > 0) {
+        changes.push(
+          `${result.added} added`
+        );
+      }
 
-    if (result.updated > 0) {
-      changes.push(
-        `${result.updated} updated`
-      );
-    }
+      if (result.updated > 0) {
+        changes.push(
+          `${result.updated} updated`
+        );
+      }
 
-    if (result.deleted > 0) {
-      changes.push(
-        `${result.deleted} deleted`
-      );
-    }
+      if (result.deleted > 0) {
+        changes.push(
+          `${result.deleted} deleted`
+        );
+      }
 
-    if (changes.length === 0) {
-      setSyncMessage(
-        "✓ Strava is up to date"
-      );
-    } else {
-      setSyncMessage(
-        `✓ Strava synced · ${changes.join(" · ")}`
-      );
-    }
+      if (changes.length === 0) {
+        setSyncMessage(
+          "✓ Strava is up to date"
+        );
+      } else {
+        setSyncMessage(
+          `✓ Strava synced · ${changes.join(
+            " · "
+          )}`
+        );
+      }
     } catch (error) {
       console.error(
         "Could not sync Strava:",
@@ -297,27 +293,27 @@ function App() {
       : 0;
 
   const swimStatus = getTargetStatus(
-      performance?.Swim
-        .average_pace_min_per_100m,
-      raceProgress
-        ?.swim_target_pace_min_per_100m ?? null,
-      true
-    );
+    performance?.Swim
+      .average_pace_min_per_100m,
+    raceProgress
+      ?.swim_target_pace_min_per_100m ?? null,
+    true
+  );
 
-    const bikeStatus = getTargetStatus(
-      performance?.Bike.average_speed_kmh,
-      raceProgress
-        ?.bike_target_speed_kmh ?? null,
-      false
-    );
+  const bikeStatus = getTargetStatus(
+    performance?.Bike.average_speed_kmh,
+    raceProgress
+      ?.bike_target_speed_kmh ?? null,
+    false
+  );
 
-    const runStatus = getTargetStatus(
-      performance?.Run
-        .average_pace_min_per_km,
-      raceProgress
-        ?.run_target_pace_min_per_km ?? null,
-      true
-    );
+  const runStatus = getTargetStatus(
+    performance?.Run
+      .average_pace_min_per_km,
+    raceProgress
+      ?.run_target_pace_min_per_km ?? null,
+    true
+  );
 
   return (
     <div className="dashboard">
@@ -347,31 +343,31 @@ function App() {
 
               <div className="dashboard-actions">
                 <div className="sync-area">
-                      {import.meta.env.PROD ? (
-                        <div className="demo-mode-badge">
-                          <span className="demo-mode-dot" />
-                          Demo Mode
-                        </div>
-                      ) : (
-                        <>
-                          <button
-                            className="strava-sync-button"
-                            onClick={handleStravaSync}
-                            disabled={syncing}
-                          >
-                            {syncing
-                              ? "Syncing..."
-                              : "↻ Sync Strava"}
-                          </button>
+                  {import.meta.env.PROD ? (
+                    <div className="demo-mode-badge">
+                      <span className="demo-mode-dot" />
+                      Demo Mode
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        className="strava-sync-button"
+                        onClick={handleStravaSync}
+                        disabled={syncing}
+                      >
+                        {syncing
+                          ? "Syncing..."
+                          : "↻ Sync Strava"}
+                      </button>
 
-                          {syncMessage && (
-                            <span className="sync-message">
-                              {syncMessage}
-                            </span>
-                          )}
-                        </>
+                      {syncMessage && (
+                        <span className="sync-message">
+                          {syncMessage}
+                        </span>
                       )}
-                  </div>
+                    </>
+                  )}
+                </div>
 
                 <div className="backend-status">
                   <span
@@ -388,6 +384,7 @@ function App() {
                 </div>
               </div>
             </header>
+
             {dashboardError && (
               <div className="dashboard-error">
                 <span>!</span>
@@ -492,6 +489,7 @@ function App() {
                       )}{" "}
                       /100m
                     </span>
+
                     {swimStatus && (
                       <span className="race-target-status">
                         {swimStatus}
@@ -526,6 +524,7 @@ function App() {
                           )} km/h`
                         : "—"}
                     </span>
+
                     {bikeStatus && (
                       <span className="race-target-status">
                         {bikeStatus}
@@ -554,6 +553,7 @@ function App() {
                       )}{" "}
                       /km
                     </span>
+
                     {runStatus && (
                       <span className="race-target-status">
                         {runStatus}
